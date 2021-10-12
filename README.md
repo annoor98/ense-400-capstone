@@ -9,3 +9,4 @@ A smart mirror that functions using gestures to navigate its user interface. It 
 
 ## Project Boards
 * [User Stories and RACI Chart](https://github.com/annoor98/ense-400-capstone/projects/1)
+* [MVPs](https://github.com/annoor98/ense-400-capstone/projects/2)

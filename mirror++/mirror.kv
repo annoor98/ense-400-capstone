@@ -1,0 +1,179 @@
+WindowManager:
+    MainScreen:
+    LightsScreen:
+    MenuScreen:
+    AlarmsScreen:
+
+<MainScreen>:
+    name: "main"
+    FloatLayout:
+        md_bg_color: 1/255, 1/255, 1/255, 1
+        ClockLabel:
+            id: clock_label
+            size_hint: 0.75,1
+            font_size: 32
+            color: 'white'
+            markup: True
+            size_hint: None, None
+            pos: 300, 675
+        Image:
+            size_hint_y: None
+            source: "images/weather.jpg"
+            width: 100
+            pos: -150, 700
+        Image:
+            source: "images/nextEvent.png"
+            pos: 0, -350
+        AnchorLayout:
+            Label:
+                text: "Hello!"
+                font_size: 28
+                size_hint: None, None
+
+
+<LightsScreen>:
+    name: "lights"
+    FloatLayout:
+        md_bg_color: 1/255, 1/255, 1/255, 1
+        ClockLabel:
+            id: clock_label
+            size_hint: 0.75,1
+            font_size: 32
+            color: 'white'
+            markup: True
+            size_hint: None, None
+            pos: 300, 675
+        Image:
+            size_hint_y: None
+            source: "images/weather.jpg"
+            width: 100
+            pos: -150, 700
+        AnchorLayout:
+            Label:
+                text: "Toggle Lights"
+                theme_text_color: "Custom"
+                text_color: 255/255, 255/255, 255/255, 1
+                font_size: 28
+                size_hint: None, None
+
+
+<MenuScreen>
+    name: "menu"
+    FloatLayout:
+        orientation: 'vertical'
+        ClockLabel:
+            id: clock_label
+            size_hint: 0.75,1
+            font_size: 32
+            color: 'white'
+            markup: True
+            size_hint: None, None
+            pos: 300, 675
+    BoxLayout:
+        md_bg_color: 1/255, 1/255, 1/255, 1
+        GridLayout:
+            size_hint_y:.75
+            cols:2
+            padding:[dp(15),dp(15),dp(15),dp(35)]
+            spacing:dp(15)
+            Button:
+                Image:
+                    source: "images/weather.png"
+                    center_x: self.parent.center_x
+                    center_y: self.parent.center_y
+                #Label:
+                 #   text: "  Weather"
+                  #  text_color: 255/255, 255/255, 255/255, 1
+            Button:
+                Image:
+                    source: "images/event.png"
+                    center_x: self.parent.center_x
+                    center_y: self.parent.center_y
+                #Label:
+                 #   text: "  Events"
+                    #theme_text_color: "Custom"
+                  #  text_color: 255/255, 255/255, 255/255, 1
+            Button:
+                on_press:
+                    root.manager.current = 'lights'
+                Image:
+                    source: "images/lights.jpg"
+                    center_x: self.parent.center_x
+                    center_y: self.parent.center_y
+                #Label:
+                 #   text: "  Lights"
+                    #theme_text_color: "Custom"
+                  #  text_color: 255/255, 255/255, 255/255, 1
+            Button:
+                Image:
+                    source: "images/thermostat.jpg"
+                    center_x: self.parent.center_x
+                    center_y: self.parent.center_y
+                #Label:
+                 #   text: "  Thermostat"
+                    #theme_text_color: "Custom"
+                  #  text_color: 255/255, 255/255, 255/255, 1
+            Button:
+                on_press:
+                    root.manager.current = 'alarms'
+                Image:
+                    source: "images/alarms.png"
+                    center_x: self.parent.center_x
+                    center_y: self.parent.center_y
+                #Label:
+                 #   text: "Alarms"
+                  #  #theme_text_color: "Custom"
+                   # text_color: 255/255, 255/255, 255/255, 1
+                    #pos: 100, 200
+            Button:
+                on_press:
+                    root.manager.pollAudio(0)
+                #Label:
+                 #   text: "  Lights"
+                    #theme_text_color: "Custom"
+                  #  text_color: 255/255, 255/255, 255/255, 1
+
+<AlarmsScreen>
+    name: "alarms"
+    FloatLayout:
+        orientation: 'vertical'
+        ClockLabel:
+            id: clock_label
+            size_hint: 0.75,1
+            font_size: 32
+            color: 'white'
+            markup: True
+            size_hint: None, None
+            pos: 300, 675
+    BoxLayout:
+        md_bg_color: 1/255, 1/255, 1/255, 1
+        GridLayout:
+            size_hint_y:.75
+            cols:1
+            padding:[dp(15),dp(15),dp(15),dp(35)]
+            spacing:dp(15)
+            RoundedButton:
+                id: wake_up
+                text: "  Wake Up!! - 11:55"
+                text_color: 255/255, 255/255, 255/255, 1
+            RoundedButton:
+                id: test
+                text: "02:25:00"
+                text_color: 255/255, 255/255, 255/255, 1
+            RoundedButton:
+                text: "  Class - 6:30"
+                text_color: 255/255, 255/255, 255/255, 1
+
+<RoundedButton>:
+    background_normal: ""
+    background_color: 0, 0, 0, 0
+    back_color:1,1,1,1
+    border_radius: 10
+    color: self.back_color
+    bold: True
+    on_press: self.change_color()
+    canvas.before:
+        Color:
+            rgba: self.back_color
+        Line:
+            rounded_rectangle: self.x, self.y, self.width, self.height, self.border_radius

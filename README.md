@@ -7,6 +7,7 @@ A smart mirror that functions using gestures to navigate its user interface. It 
 ## Bazaar Day 2 Document
 [Status Update](https://github.com/annoor98/ense-400-capstone/blob/main/Documentation/Bazaar%20Day%202%20Status%20Update.pdf)
 
+[Demo Videos](https://www.youtube.com/watch?v=x5D41Og0Nmc)
 ## VLOGS
 * [VLOG #1](https://www.youtube.com/watch?v=p-QscUXVlfg&ab_channel=AnnoorRahman)
 * [VLOG #2](https://www.youtube.com/watch?v=RuYgLEflTps&ab_channel=AnnoorRahman)

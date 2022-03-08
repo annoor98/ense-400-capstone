@@ -13,6 +13,7 @@ A smart mirror that functions using gestures to navigate its user interface. It 
 * [VLOG #2](https://www.youtube.com/watch?v=RuYgLEflTps&ab_channel=AnnoorRahman)
 * [VLOG #3](https://www.youtube.com/watch?v=LThE1gjlmOM&ab_channel=AnnoorRahman)
 * [VLOG #4](https://www.youtube.com/watch?v=E9mAc3G4bAs)
+* [VLOG #5](https://www.youtube.com/watch?v=9_JzaCwo5-A)
 
 ## Project Boards
 * [User Stories and RACI Chart](https://github.com/annoor98/ense-400-capstone/projects/1)

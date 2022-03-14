@@ -42,11 +42,31 @@ class ClockLabel(Label):
         self.text = f"[u]{time.strftime('%I:%M:%S')}[/u]"
 
 
-class TutorialScreen(Screen):
+class SettingsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
         self.tState = 0
+
+    def update(self, screen):
+        pass
+
+
+class TutorialScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+
+    def update(self, screen):
+        pass
+
+
+class TutorialScreen2(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
 
     def update(self, screen):
         pass
@@ -79,7 +99,7 @@ class MainScreen(Screen):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
         #self.events = calendar.getEvents()
-        self.firstEventText = ""
+        self.firstEventText = "No Upcoming Event"
 
         #if self.events:
          #   self.firstEventText = self.events[0]
@@ -143,7 +163,6 @@ class AlarmsScreen(Screen):
             alarm = False
 
 
-
 # ScreenManager class handles all other screens
 class WindowManager(ScreenManager):
     def __init__(self, **kwargs):
@@ -187,13 +206,24 @@ class WindowManager(ScreenManager):
             if commandMode is False:
                 self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
 
-            if repr(self.current_screen) == "<Screen name='" + "tutorial" + "'>":
+            if repr(self.current_screen) == "<Screen name='" + "settings" + "'>":
                 if word == "voice only":
                     self.inputOption(1)
                 elif word == "gestures only" or word == "gestures only":
                     self.inputOption(0)
                 elif word == "both":
                     self.inputOption(2)
+
+            if repr(self.current_screen) == "<Screen name='" + "tutorial" + "'>":
+                if word == "next":
+                    self.transition.direction = 'up'
+                    self.current = 'tutorialVoice'
+                    return None
+            if repr(self.current_screen) == "<Screen name='" + "tutorialVoice" + "'>":
+                if word == "next":
+                    self.transition.direction = 'up'
+                    self.current = 'settings'
+                    return None
 
 
             if word == "mirror" and commandMode is False:
@@ -205,6 +235,11 @@ class WindowManager(ScreenManager):
                     self.current = 'alarms'
                     self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
                     commandMode = False
+                elif word == "guide":
+                    self.transition.direction = 'up'
+                    self.current = 'tutorial'
+                    self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
+                    commandMode = False
                 elif word == "events":
                     self.transition.direction = 'up'
                     self.current = 'events'
@@ -212,7 +247,7 @@ class WindowManager(ScreenManager):
                     commandMode = False
                 elif word == "settings":
                     self.transition.direction = 'up'
-                    self.current = 'tutorial'
+                    self.current = 'settings'
                     self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
                     commandMode = False
                 elif word == "home":
@@ -263,13 +298,13 @@ class WindowManager(ScreenManager):
             if repr(self.current_screen) == "<Screen name='" + "menu" + "'>":
                 self.current = 'main'
             elif repr(self.current_screen) == "<Screen name='" + "main" + "'>":
-                self.current = 'tutorial'
+                self.current = 'settings'
             self.swiped = True
         elif self.cam.getGesture() == 4 and self.swiped is False:
             self.transition.direction = 'right'
             if repr(self.current_screen) == "<Screen name='" + "main" + "'>":
                 self.current = 'menu'
-            elif repr(self.current_screen) == "<Screen name='" + "tutorial" + "'>":
+            elif repr(self.current_screen) == "<Screen name='" + "settings" + "'>":
                 self.current = 'main'
             self.swiped = True
         elif self.cam.getGesture() != 4 and self.cam.getGesture() != 5:

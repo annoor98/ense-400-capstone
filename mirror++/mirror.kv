@@ -1,17 +1,113 @@
 WindowManager:
     TutorialScreen:
+    TutorialScreen2:
+    AlarmsScreen:
+    SettingsScreen:
     CalendarScreen:
     MainScreen:
     LightsScreen:
     MenuScreen:
-    AlarmsScreen:
 
 <TutorialScreen>:
     name: "tutorial"
+    FloatLayout:
+        Label:
+            size_hint: None, None
+            pos: 175, 650
+            text: "Welcome!\nTo navigate this mirror, you need to use \neither hand gestures or\nvoice commands.\nTry selecting continue or say\n'Next' to move on."
+            font_size: 24
+    GridLayout:
+        size_hint_y:.75
+        cols:2
+        RoundedButton:
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+            background_color: 0,0,0,0
+            Label:
+                text: '\n        Go Left'
+                font_size: 22
+                pos: self.parent.pos
+            Image:
+                source: "images/tutorial/left.png"
+                center_x: self.parent.center_x
+                center_y: self.parent.center_y
+
+        RoundedButton:
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+            background_color: 0,0,0,0
+            Label:
+                text: '\n        Go Right'
+                font_size: 22
+                pos: self.parent.pos
+            Image:
+                source: "images/tutorial/right.png"
+                center_x: self.parent.center_x
+                center_y: self.parent.center_y
+        RoundedButton:
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+            background_color: 0,0,0,0
+            Label:
+                text: '\n          Go Home'
+                font_size: 22
+                pos: self.parent.pos
+            Image:
+                source: "images/tutorial/peace.png"
+                center_x: self.parent.center_x
+                center_y: self.parent.center_y
+        RoundedButton:
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+            background_color: 0,0,0,0
+            Label:
+                text: '\n\n                Navigate Cursor'
+                font_size: 22
+                pos: self.parent.pos
+            Image:
+                source: "images/tutorial/open.png"
+                center_x: self.parent.center_x
+                center_y: self.parent.center_y
+        RoundedButton:
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+            background_color: 0,0,0,0
+            Label:
+                text: '\n\n                Select Option'
+                font_size: 22
+                pos: self.parent.pos
+            Image:
+                source: "images/tutorial/fist.png"
+                center_x: self.parent.center_x
+                center_y: self.parent.center_y
+        Button:
+            text: "Next"
+            on_press: root.manager.current = 'tutorialVoice'
+
+<TutorialScreen2>:
+    name: "tutorialVoice"
     BoxLayout:
         orientation: "vertical"
         Label:
-            text: "Welcome!\nSelect preferred input method.\nEither use hand to hover.\nOR\nSay 'mirror'\nfollowed by input option."
+            text: "The Mirror can also be controlled using voice commands.\n\nSay 'Mirror', *Pause* and then say the command."
+        Image:
+            source: "images/tutorial/commandList.png"
+        Button:
+            size_hint: 1, None
+            text: "Next"
+            on_press: root.manager.current = "settings"
+
+<SettingsScreen>:
+    name: "settings"
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            text: "Select preferred input method.\nEither use hand to hover.\nOR\nSay 'mirror'\nfollowed by input option."
             font_size: 24
         Button:
             id: optionG
@@ -265,15 +361,8 @@ WindowManager:
             padding:[dp(15),dp(15),dp(15),dp(35)]
             spacing:dp(15)
             RoundedButton:
-                id: wake_up
-                text: "  Wake Up!! - 11:55"
-                text_color: 255/255, 255/255, 255/255, 1
-            RoundedButton:
-                id: test
-                text: "02:25:00"
-                text_color: 255/255, 255/255, 255/255, 1
-            RoundedButton:
-                text: "  Class - 6:30"
+                id: "alarm_text"
+                text: root.alarmTime
                 text_color: 255/255, 255/255, 255/255, 1
 
 <RoundedButton>:

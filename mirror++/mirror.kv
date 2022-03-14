@@ -1,8 +1,103 @@
 WindowManager:
+    TutorialScreen:
+    CalendarScreen:
     MainScreen:
     LightsScreen:
     MenuScreen:
     AlarmsScreen:
+
+<TutorialScreen>:
+    name: "tutorial"
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            text: "Welcome!\nSelect preferred input method.\nEither use hand to hover.\nOR\nSay 'mirror'\nfollowed by input option."
+            font_size: 24
+        Button:
+            id: optionG
+            on_press:
+                root.manager.inputOption(0)
+            text: "Gestures Only"
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+        Button:
+            id: optionV
+            on_press:
+                root.manager.inputOption(1)
+            text: "Voice Only"
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+        Button:
+            id: optionB
+            on_press:
+                root.manager.inputOption(2)
+            text: "Both"
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+
+<CalendarScreen>:
+    name: "events"
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            text: "Events"
+            font_size: 24
+        RoundedButton:
+            id: event_first
+            text: root.event1
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+        RoundedButton:
+            id: event_second
+            text: root.event2
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+        Button:
+            id: event_third
+            text: root.event3
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+        Button:
+            id: event_fourth
+            text: root.event4
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+
 
 <MainScreen>:
     name: "main"
@@ -21,14 +116,29 @@ WindowManager:
             source: "images/weather.jpg"
             width: 100
             pos: -150, 700
-        Image:
-            source: "images/nextEvent.png"
-            pos: 0, -350
-        AnchorLayout:
-            Label:
-                text: "Hello!"
-                font_size: 28
-                size_hint: None, None
+    AnchorLayout:
+        anchor_x: "center"
+        anchor_y: "center"
+        Label:
+            id: command_label
+            text: "Say 'mirror' followed by a command!"
+            font_size: 24
+            size_hint: None, None
+    AnchorLayout:
+        anchor_x: "center"
+        anchor_y: "bottom"
+        Button:
+            id: event_first
+            text: root.firstEventText
+            font_size: 24
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+            size_hint: 1, None
 
 
 <LightsScreen>:
@@ -85,6 +195,8 @@ WindowManager:
                  #   text: "  Weather"
                   #  text_color: 255/255, 255/255, 255/255, 1
             Button:
+                on_press:
+                    root.manager.current = 'events'
                 Image:
                     source: "images/event.png"
                     center_x: self.parent.center_x
@@ -177,3 +289,16 @@ WindowManager:
             rgba: self.back_color
         Line:
             rounded_rectangle: self.x, self.y, self.width, self.height, self.border_radius
+
+
+
+
+
+
+
+
+
+
+
+
+

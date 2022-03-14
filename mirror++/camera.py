@@ -1,63 +1,46 @@
 import cv2
 import mediapipe as mp
 import time
-import requests
-import tracker as tracker
+from tracker import tracker
 
 
 class camera:
-    # Width and height of the webcam we are using. Feel free to change it
-    camWidth, camHeight = 640, 480
 
-    # First parameter determines which camera to use (0 is default)
-    capture = cv2.VideoCapture(2, cv2.CAP_DSHOW)
+    def __init__(self, cam_id):
+        self.camWidth = 480
+        self.camHeight = 480
 
-    # Set width and height of frame
-    capture.set(3, camWidth)
-    capture.set(4, camHeight)
+        self.capture = cv2.VideoCapture(cam_id, cv2.CAP_DSHOW)
 
-    mpHands = mp.solutions.hands
-    mpDraw = mp.solutions.drawing_utils
-    hands = mpHands.Hands()
+        self.capture.set(3, self.camWidth)
+        self.capture.set(4, self.camHeight)
 
-    lightsRequest = ""
-    isPalm = True
-    onScreen = False
+        self.mpHands = mp.solutions.hands
+        self.mpDraw = mp.solutions.drawing_utils
+        self.hands = self.mpHands.Hands(max_num_hands=1)
 
-    # Old and new positions of hand
-    prevPos = 0
-    newPos = 0
+        self.isPalm = True
+        self.onScreen = False
 
-    # For fps tracking
-    oldTime = 0
-    newTime = 0
+        # For fps tracking
+        self.oldTime = 0
+        self.newTime = 0
 
-    gestureText = ""
-    swipedRight = False
-    swipedLeft = False
-    gotoMain = False
+        self.gestureText = ""
+        self.gotoMain = False
+        self.gesture = 0
 
-    # Landmark positions for joints in a hand
-    handjoint = {
-        "wrist": 0,
-        "thumb": 4,
-        "index": 8,
-        "middle": 12,
-        "ring": 16,
-        "pinky": 20
-    }
+        self.tracker = tracker(456, 810)
 
     def run(self):
-        success, img = camera.capture.read()
+        success, img = self.capture.read()
         # convert image to rgb because hands only takes in rgb images
         imageRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        results = camera.hands.process(imageRGB)
+        results = self.hands.process(imageRGB)
 
         # If at least 1 hand is present in screen
         if results.multi_hand_landmarks:
-            if camera.onScreen is False:
-                camera.prevPos = camera.newPos
-                camera.onScreen = True
+            self.onScreen = True
             # Extract info of each hand (landmarks = location of hand) and draw points on screen
             for landmarks in results.multi_hand_landmarks:
 
@@ -88,52 +71,52 @@ class camera:
                     if hid in landmarkCalc:
                         landmarkCalc[hid] = xPos, yPos
 
-                    # Draws circle on the location of the wrist
-                    if hid == camera.handjoint["wrist"]:
-                        cv2.circle(img, (xPos, yPos), 20, (255, 0, 255), cv2.FILLED)
-                        camera.newPos = xPos
-
                 # updates mouse position based on hand's joint positions
-                tracker.mouseDetect(landmarkCalc)
+                self.tracker.mouseDetect(landmarkCalc)
 
                 # Detects if hands are making any specific gestures
-                if tracker.isFist(landmarkCalc):
-                    camera.gestureText = "Fist"
-                    camera.isPalm = False
-                    camera.gotoMain = False
-                elif tracker.isOpenPalm(landmarkCalc):
-                    camera.gestureText = "Open Palm"
-                    camera.isPalm = True
-                    camera.gotoMain = False
-                elif tracker.isIndexUp(landmarkCalc):
-                    camera.gestureText = "Index Up"
-                    camera.gotoMain = True
+                if self.tracker.isFist(landmarkCalc):
+                    self.gestureText = "Fist"
+                    self.isPalm = False
+                    self.gotoMain = False
+                    self.gesture = 2
+                elif self.tracker.isOpenPalm(landmarkCalc):
+                    self.gestureText = "Open Palm"
+                    self.isPalm = True
+                    self.gotoMain = False
+                    self.gesture = 1
+                elif self.tracker.isIndexUp(landmarkCalc):
+                    self.gestureText = "Index Up"
+                    self.gotoMain = True
+                    self.gesture = 3
+                elif self.tracker.isLeft(landmarkCalc):
+                    self.gestureText = "LEFT"
+                    self.gesture = 4
+                elif self.tracker.isRight(landmarkCalc):
+                    self.gestureText = "RIGHT"
+                    self.gesture = 5
                 else:
-                    camera.gestureText = "NONE"
-                    camera.gotoMain = False
+                    self.gestureText = "NONE"
+                    self.gotoMain = False
+                    self.gesture = 0
 
-                camera.mpDraw.draw_landmarks(img, landmarks, camera.mpHands.HAND_CONNECTIONS)
+                self.mpDraw.draw_landmarks(img, landmarks, self.mpHands.HAND_CONNECTIONS)
         else:
-            camera.gestureText = "No Hands"
-            camera.onScreen = False
-            camera.prevPos = 0
+            self.gestureText = "No Hands"
+            self.onScreen = False
 
         # Gets framerate of camera
-        camera.newTime = time.time()
-        fps = 1 / (camera.newTime - camera.oldTime)
-        camera.oldTime = camera.newTime
+        self.newTime = time.time()
+        fps = 1 / (self.newTime - self.oldTime)
+        self.oldTime = self.newTime
 
         # Displays framerate on image feed
-        cv2.putText(img, camera.gestureText, (320, 70), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 255), 3)
+        cv2.putText(img, self.gestureText, (320, 70), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 255), 3)
         cv2.putText(img, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 3)
 
         cv2.imshow("Image", img)
         cv2.waitKey(1)
 
-    # Returns position of wrist
-    def getPosition(self):
-        return camera.prevPos, camera.newPos
 
-    # Updates position of wrist
-    def setPosition(self, pos):
-        camera.prevPos = pos
+    def getGesture(self):
+        return self.gesture

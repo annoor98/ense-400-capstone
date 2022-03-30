@@ -1,12 +1,14 @@
 WindowManager:
+    MainScreen:
+    WeatherScreen:
+    AlarmsScreen:
+    CalendarScreen:
+    MenuScreen:
     TutorialScreen:
     TutorialScreen2:
-    AlarmsScreen:
     SettingsScreen:
-    CalendarScreen:
-    MainScreen:
     LightsScreen:
-    MenuScreen:
+
 
 <TutorialScreen>:
     name: "tutorial"
@@ -150,9 +152,6 @@ WindowManager:
     name: "events"
     BoxLayout:
         orientation: "vertical"
-        Label:
-            text: "Events"
-            font_size: 24
         RoundedButton:
             id: event_first
             text: root.event1
@@ -173,7 +172,22 @@ WindowManager:
                     width: 3
                     rectangle: self.x, self.y, self.width, self.height
             background_color: 0,0,0,0
-        Button:
+        Label:
+            text: ""
+            font_size: 24
+        Label:
+            text: ""
+            font_size: 24
+        Label:
+            text: ""
+            font_size: 24
+        Label:
+            text: ""
+            font_size: 24
+        Label:
+            text: ""
+            font_size: 24
+        RoundedButton:
             id: event_third
             text: root.event3
             canvas.before:
@@ -183,7 +197,7 @@ WindowManager:
                     width: 3
                     rectangle: self.x, self.y, self.width, self.height
             background_color: 0,0,0,0
-        Button:
+        RoundedButton:
             id: event_fourth
             text: root.event4
             canvas.before:
@@ -207,14 +221,15 @@ WindowManager:
             markup: True
             size_hint: None, None
             pos: 300, 675
-        Image:
+        WeatherIcon:
+            id: result
             size_hint_y: None
-            source: "images/weather.jpg"
             width: 100
             pos: -150, 700
     AnchorLayout:
         anchor_x: "center"
-        anchor_y: "center"
+        anchor_y: "bottom"
+        padding: 0,150
         Label:
             id: command_label
             text: "Say 'mirror' followed by a command!"
@@ -282,64 +297,34 @@ WindowManager:
             cols:2
             padding:[dp(15),dp(15),dp(15),dp(35)]
             spacing:dp(15)
-            Button:
+            RoundedButton:
+                on_press:
+                    root.manager.current = 'weather'
                 Image:
                     source: "images/weather.png"
                     center_x: self.parent.center_x
                     center_y: self.parent.center_y
-                #Label:
-                 #   text: "  Weather"
-                  #  text_color: 255/255, 255/255, 255/255, 1
-            Button:
+            RoundedButton:
                 on_press:
                     root.manager.current = 'events'
                 Image:
                     source: "images/event.png"
                     center_x: self.parent.center_x
                     center_y: self.parent.center_y
-                #Label:
-                 #   text: "  Events"
-                    #theme_text_color: "Custom"
-                  #  text_color: 255/255, 255/255, 255/255, 1
-            Button:
+            RoundedButton:
                 on_press:
                     root.manager.current = 'lights'
                 Image:
                     source: "images/lights.jpg"
                     center_x: self.parent.center_x
                     center_y: self.parent.center_y
-                #Label:
-                 #   text: "  Lights"
-                    #theme_text_color: "Custom"
-                  #  text_color: 255/255, 255/255, 255/255, 1
-            Button:
-                Image:
-                    source: "images/thermostat.jpg"
-                    center_x: self.parent.center_x
-                    center_y: self.parent.center_y
-                #Label:
-                 #   text: "  Thermostat"
-                    #theme_text_color: "Custom"
-                  #  text_color: 255/255, 255/255, 255/255, 1
-            Button:
+            RoundedButton:
                 on_press:
                     root.manager.current = 'alarms'
                 Image:
                     source: "images/alarms.png"
                     center_x: self.parent.center_x
                     center_y: self.parent.center_y
-                #Label:
-                 #   text: "Alarms"
-                  #  #theme_text_color: "Custom"
-                   # text_color: 255/255, 255/255, 255/255, 1
-                    #pos: 100, 200
-            Button:
-                on_press:
-                    root.manager.pollAudio(0)
-                #Label:
-                 #   text: "  Lights"
-                    #theme_text_color: "Custom"
-                  #  text_color: 255/255, 255/255, 255/255, 1
 
 <AlarmsScreen>
     name: "alarms"
@@ -356,7 +341,7 @@ WindowManager:
     BoxLayout:
         md_bg_color: 1/255, 1/255, 1/255, 1
         GridLayout:
-            size_hint_y:.75
+            size_hint_y:.25
             cols:1
             padding:[dp(15),dp(15),dp(15),dp(35)]
             spacing:dp(15)
@@ -380,7 +365,46 @@ WindowManager:
             rounded_rectangle: self.x, self.y, self.width, self.height, self.border_radius
 
 
-
+<WeatherScreen>:
+    name: "weather"
+    orientation: 'vertical'
+    WeatherIcon:
+        id: result
+        size_hint_y: None
+        width: 100
+        pos: 150, 675
+    WeatherLabel:
+        id: result
+        size_hint: 0.75,1
+        font_size: 32
+        color: 'white'
+        markup: True
+        size_hint: None, None
+        pos: 50, 675
+    TempLabel:
+        id: result
+        size_hint: 0.75,1
+        font_size: 24
+        color: 'white'
+        markup: True
+        size_hint: 1, None
+        pos: 0, 125
+    FeelsLabel:
+        id: result
+        size_hint: 0.75,1
+        font_size: 24
+        color: 'white'
+        markup: True
+        size_hint: 1, None
+        pos: 0, 75
+    ForecastLabel:
+        id: result
+        size_hint: 0.75,1
+        font_size: 24
+        color: 'white'
+        markup: True
+        size_hint: 1, None
+        pos: 0, 25
 
 
 

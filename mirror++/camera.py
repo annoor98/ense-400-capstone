@@ -7,7 +7,7 @@ from tracker import tracker
 class camera:
 
     def __init__(self, cam_id):
-        self.camWidth = 480
+        self.camWidth = 640
         self.camHeight = 480
 
         self.capture = cv2.VideoCapture(cam_id, cv2.CAP_DSHOW)
@@ -29,7 +29,10 @@ class camera:
         self.gestureText = ""
         self.gotoMain = False
         self.gesture = 0
+        self.holdTimer = 0
+        self.holdPos = -1
 
+        # 456,810
         self.tracker = tracker(456, 810)
 
     def run(self):
@@ -76,26 +79,57 @@ class camera:
 
                 # Detects if hands are making any specific gestures
                 if self.tracker.isFist(landmarkCalc):
-                    self.gestureText = "Fist"
-                    self.isPalm = False
-                    self.gotoMain = False
-                    self.gesture = 2
+                    if self.holdPos == 2:
+                        self.holdTimer += 1
+                    else:
+                        self.holdPos = 2
+                        self.holdTimer = 0
+                    self.gestureText = "FIST"
+                    if self.holdTimer > 25:
+                        self.gesture = 2
+                        self.holdTimer = 0
+                        self.tracker.mouseClick(landmarkCalc)
+                        self.isPalm = False
+                        self.gotoMain = False
                 elif self.tracker.isOpenPalm(landmarkCalc):
                     self.gestureText = "Open Palm"
                     self.isPalm = True
                     self.gotoMain = False
                     self.gesture = 1
                 elif self.tracker.isIndexUp(landmarkCalc):
-                    self.gestureText = "Index Up"
-                    self.gotoMain = True
-                    self.gesture = 3
+                    if self.holdPos == 3:
+                        self.holdTimer += 1
+                    else:
+                        self.holdPos = 3
+                        self.holdTimer = 0
+                    self.gestureText = "Peace Sign"
+                    if self.holdTimer > 25:
+                        self.gesture = 3
+                        self.holdTimer = 0
+                        self.gotoMain = True
                 elif self.tracker.isLeft(landmarkCalc):
+                    if self.holdPos == 4:
+                        self.holdTimer += 1
+                    else:
+                        self.holdPos = 4
+                        self.holdTimer = 0
                     self.gestureText = "LEFT"
-                    self.gesture = 4
+                    if self.holdTimer > 25:
+                        self.gesture = 4
+                        self.holdTimer = 0
                 elif self.tracker.isRight(landmarkCalc):
+                    if self.holdPos == 5:
+                        self.holdTimer += 1
+                    else:
+                        self.holdPos = 5
+                        self.holdTimer = 0
                     self.gestureText = "RIGHT"
-                    self.gesture = 5
+                    if self.holdTimer > 25:
+                        self.gesture = 5
+                        self.holdTimer = 0
                 else:
+                    self.holdPos = -1
+                    self.holdTimer = 0
                     self.gestureText = "NONE"
                     self.gotoMain = False
                     self.gesture = 0

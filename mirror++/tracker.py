@@ -66,12 +66,12 @@ class tracker:
         palmY = landmarks[0][1]
 
         # Prevents mouse from going out of bounds
-        if palmX > 630 - self.boundx:
-            palmX = 630 - self.boundx
+        if palmX > self.monitorWidth - self.boundx:
+            palmX = self.monitorWidth - self.boundx
         if palmX < self.boundx + 20:
             palmX = self.boundx + 20
-        if palmY > 470 - self.boundy:
-            palmY = 470 - self.boundy
+        if palmY > self.monitorHeight - self.boundy:
+            palmY = self.monitorHeight - self.boundy
         if palmY < self.boundy + 20:
             palmY = self.boundy + 20
 
@@ -89,11 +89,12 @@ class tracker:
 
         self.prevX, self.prevY = self.currX, self.currY
 
-        # Triggers a mouse click if a fist is made
-        if self.isFist(landmarks) and self.mouseClicked is False:
-            self.mouseClicked = True
-            # autopy.mouse.click()
-
         # Another mouse click will not get triggered until an open palm is made again
         if self.isOpenPalm(landmarks):
             self.mouseClicked = False
+
+    def mouseClick(self, landmarks):
+        # Triggers a mouse click if a fist is made
+        if self.isFist(landmarks) and self.mouseClicked is False:
+            self.mouseClicked = True
+            autopy.mouse.click()

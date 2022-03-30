@@ -10,14 +10,17 @@ from kivy.uix.label import Label
 from kivy.core.window import Window
 from kivy.properties import ListProperty
 from kivy.uix.button import Button
+from kivy.uix.image import Image
 from kivy.uix.screenmanager import ScreenManager, Screen
 
 from camera import camera
 import calendarScreen as calendar
+from weather import weather_result, temp_result, feel_result, forecast_result
 
 # Sets size of application screens
+# 456 810
 Window.size = (456, 810)
-# Window.fullscreen = True
+#Window.fullscreen = True
 
 # Sets microphone
 recognizer = sr.Recognizer()
@@ -26,6 +29,7 @@ commandMode = False
 gestures = True
 voice = True
 alarm = True
+alarmRun = False
 
 with open('devices.json', 'r') as file:
     devices = json.load(file)
@@ -94,6 +98,79 @@ class CalendarScreen(Screen):
         pass
 
 
+class WeatherIcon(Image):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+        if weather_result == "Rain":
+            self.source = 'images/rainy.PNG'
+        elif weather_result == "Clouds":
+            self.source = 'images/cloudy.png'
+        elif weather_result == "Snow":
+            self.source = 'images/snowy.PNG'
+        elif weather_result == "Clear":
+            self.source = 'images/clear.PNG'
+        else:
+            self.source = 'images/sunny.PNG'
+
+    def update(self, delta):
+        pass
+
+
+class TempLabel(Label):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+        self.text = temp_result + "°C"
+
+    def update(self, delta):
+        pass
+
+
+class WeatherLabel(Label):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+        self.text = weather_result
+
+    def update(self, delta):
+        pass
+
+
+class FeelsLabel(Label):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+        self.text = feel_result + "°C"
+
+    def update(self, delta):
+        pass
+
+
+class ForecastLabel(Label):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+        self.text = forecast_result + "°C"
+
+    def update(self, delta):
+        pass
+
+
+class WeatherScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+    def update(self, delta):
+        pass
+
+
 class MainScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -147,20 +224,23 @@ class AlarmsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1)
-        if calendar.getAlarmEvent():
-            self.alarmTime = calendar.getAlarmEvent()[0]
-        else:
-            self.alarmTime = "No Alarms Present"
+        #if calendar.getAlarmEvent():
+         #   self.alarmTime = calendar.getAlarmEvent()[0]
+        #else:
+        self.alarmTime = "No Alarms Present"
 
     def update(self, delta):
         self.alarmLight()
 
     def alarmLight(self):
-        global alarm
+        global alarm, alarmRun
         currentTime = datetime.datetime.now().strftime("%H:%M")
         if currentTime == self.alarmTime and alarm is True:
             requests.get(devices['lightsAlarm'])
+            alarmRun = True
             alarm = False
+        if alarmRun is True:
+            self.alarmTime = "ALARM RUNNING! SAY 'STOP' OR MAKE Home Gesture!"
 
 
 # ScreenManager class handles all other screens
@@ -198,7 +278,7 @@ class WindowManager(ScreenManager):
         self.current = 'main'
 
     def audioCommand(self, rec, source):
-        global commandMode, gestures
+        global commandMode, gestures, alarmRun
         if voice is False:
             return None
         try:
@@ -226,10 +306,10 @@ class WindowManager(ScreenManager):
                     return None
 
 
-            if word == "mirror" and commandMode is False:
+            if word == "mirror" and commandMode is False and alarmRun is False:
                 commandMode = True
                 self.get_screen('main').ids.command_label.text = "listening..."
-            elif commandMode is True:
+            elif commandMode is True and alarmRun is False:
                 if word == "alarm" or word == 'alarms':
                     self.transition.direction = 'up'
                     self.current = 'alarms'
@@ -243,6 +323,11 @@ class WindowManager(ScreenManager):
                 elif word == "events":
                     self.transition.direction = 'up'
                     self.current = 'events'
+                    self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
+                    commandMode = False
+                elif word == "weather":
+                    self.transition.direction = 'up'
+                    self.current = 'weather'
                     self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
                     commandMode = False
                 elif word == "settings":
@@ -271,6 +356,10 @@ class WindowManager(ScreenManager):
                 else:
                     commandMode = False
                     self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
+            elif word == "stop" and alarmRun is True:
+                self.transition.direction = 'up'
+                requests.get(devices['lightsAlarmOff'])
+                self.current = 'main'
 
         except sr.UnknownValueError:
             print("Could not understand audio")
@@ -281,8 +370,9 @@ class WindowManager(ScreenManager):
     # Update function is called every 30sec
     def update(self, delta):
         # Updates camera tracking and logic
-        global gestures
+        global gestures, alarmRun
         if gestures is True:
+            pass
             self.cam.run()
         if self.cam.gotoMain is True:
             if repr(self.current_screen) != "<Screen name='" + "main" + "'>":
@@ -291,30 +381,39 @@ class WindowManager(ScreenManager):
         if self.cam.onScreen is True:
             self.gestureLogic()
 
+        if alarmRun:
+            self.transition.direction = 'up'
+            self.current = 'alarm'
+
     # Changes screen depending on direction and speed the hand swipes
     def gestureLogic(self):
-        if self.cam.getGesture() == 5 and self.swiped is False:
+        global alarmRun
+        if self.cam.getGesture() == 5 and self.swiped is False and alarmRun is False:
             self.transition.direction = 'left'
             if repr(self.current_screen) == "<Screen name='" + "menu" + "'>":
                 self.current = 'main'
             elif repr(self.current_screen) == "<Screen name='" + "main" + "'>":
                 self.current = 'settings'
             self.swiped = True
-        elif self.cam.getGesture() == 4 and self.swiped is False:
+        elif self.cam.getGesture() == 4 and self.swiped is False and alarmRun is False:
             self.transition.direction = 'right'
             if repr(self.current_screen) == "<Screen name='" + "main" + "'>":
                 self.current = 'menu'
             elif repr(self.current_screen) == "<Screen name='" + "settings" + "'>":
                 self.current = 'main'
             self.swiped = True
-        elif self.cam.getGesture() != 4 and self.cam.getGesture() != 5:
+        elif self.cam.getGesture() != 4 and self.cam.getGesture() != 5 and alarmRun is False:
             self.swiped = False
+        elif self.cam.getGesture() == 3 and alarmRun is True:
+            self.current = 'main'
+            alarmRun = False
+            requests.get(devices['lightsAlarmOff'])
 
 
 # Main application class
 class mirrorApp(App):
     # Creates new camera object from camera class
-    cam = camera(2)
+    cam = camera(1)
     pass
 
 

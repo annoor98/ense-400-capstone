@@ -1,14 +1,18 @@
 WindowManager:
     MainScreen:
-    WeatherScreen:
+    LightsScreen:
     AlarmsScreen:
-    CalendarScreen:
     MenuScreen:
+    CalendarScreen:
+    BlackScreen:
+    WeatherScreen:
     TutorialScreen:
     TutorialScreen2:
     SettingsScreen:
-    LightsScreen:
 
+
+<BlackScreen>:
+    name: "blackscreen"
 
 <TutorialScreen>:
     name: "tutorial"
@@ -147,11 +151,27 @@ WindowManager:
                     width: 3
                     rectangle: self.x, self.y, self.width, self.height
             background_color: 0,0,0,0
+        Button:
+            on_press:
+                root.manager.current = 'blackscreen'
+            text: "Screen Off"
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
 
 <CalendarScreen>:
     name: "events"
     BoxLayout:
         orientation: "vertical"
+        AnchorLayout:
+            anchor_x: "center"
+            Label:
+                text: "Events Page"
+                font_size: 32
         RoundedButton:
             id: event_first
             text: root.event1
@@ -187,6 +207,9 @@ WindowManager:
         Label:
             text: ""
             font_size: 24
+        AnchorLayout:
+            anchor_x: "center"
+            CommandLabel:
         RoundedButton:
             id: event_third
             text: root.event3
@@ -230,11 +253,7 @@ WindowManager:
         anchor_x: "center"
         anchor_y: "bottom"
         padding: 0,150
-        Label:
-            id: command_label
-            text: "Say 'mirror' followed by a command!"
-            font_size: 24
-            size_hint: None, None
+        CommandLabel:
     AnchorLayout:
         anchor_x: "center"
         anchor_y: "bottom"
@@ -254,28 +273,58 @@ WindowManager:
 
 <LightsScreen>:
     name: "lights"
-    FloatLayout:
-        md_bg_color: 1/255, 1/255, 1/255, 1
-        ClockLabel:
-            id: clock_label
-            size_hint: 0.75,1
-            font_size: 32
-            color: 'white'
-            markup: True
-            size_hint: None, None
-            pos: 300, 675
-        Image:
-            size_hint_y: None
-            source: "images/weather.jpg"
-            width: 100
-            pos: -150, 700
+    BoxLayout:
+        orientation: "vertical"
         AnchorLayout:
+            anchor_x: "center"
             Label:
-                text: "Toggle Lights"
-                theme_text_color: "Custom"
-                text_color: 255/255, 255/255, 255/255, 1
-                font_size: 28
+                text: "Devices Page"
+                font_size: 32
+        Label:
+            text: ""
+            font_size: 24
+        FloatLayout:
+            md_bg_color: 1/255, 1/255, 1/255, 1
+            ClockLabel:
+                id: clock_label
+                size_hint: 0.75,1
+                font_size: 32
+                color: 'white'
+                markup: True
                 size_hint: None, None
+                pos: 300, 625
+        Label:
+            text: ""
+            font_size: 24
+        Label:
+            text: ""
+            font_size: 24
+        Label:
+            text: ""
+            font_size: 24
+        AnchorLayout:
+            anchor_x: "center"
+            CommandLabel:
+        RoundedButton:
+            text: "Toggle Lights"
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            on_press: root.manager.toggleIoT(0)
+            background_color: 0,0,0,0
+        RoundedButton:
+            text: "Toggle Switch"
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            on_press: root.manager.toggleIoT(1)
+            background_color: 0,0,0,0
 
 
 <MenuScreen>
@@ -330,6 +379,13 @@ WindowManager:
     name: "alarms"
     FloatLayout:
         orientation: 'vertical'
+        AnchorLayout:
+            anchor_x: "center"
+            anchor_y: "top"
+            Label:
+                text: "Alarms Page"
+                font_size: 32
+                size_hint: None, None
         ClockLabel:
             id: clock_label
             size_hint: 0.75,1
@@ -337,7 +393,7 @@ WindowManager:
             color: 'white'
             markup: True
             size_hint: None, None
-            pos: 300, 675
+            pos: 300, 625
     BoxLayout:
         md_bg_color: 1/255, 1/255, 1/255, 1
         GridLayout:
@@ -345,6 +401,9 @@ WindowManager:
             cols:1
             padding:[dp(15),dp(15),dp(15),dp(35)]
             spacing:dp(15)
+            AnchorLayout:
+                anchor_x: "center"
+                CommandLabel:
             RoundedButton:
                 id: "alarm_text"
                 text: root.alarmTime
@@ -355,15 +414,18 @@ WindowManager:
     background_color: 0, 0, 0, 0
     back_color:1,1,1,1
     border_radius: 10
-    color: self.back_color
     bold: True
-    on_press: self.change_color()
     canvas.before:
         Color:
             rgba: self.back_color
         Line:
             rounded_rectangle: self.x, self.y, self.width, self.height, self.border_radius
 
+<CommandLabel>:
+    id: command_label
+    text: "Say 'mirror' followed by a command!"
+    font_size: 24
+    size_hint: None, None
 
 <WeatherScreen>:
     name: "weather"

@@ -1,8 +1,12 @@
 import requests
 import json
 import datetime
-api_key = "a6ceb826d33d44b570454ee125296392"
-city = "6119109"
+
+with open('devices.json', 'r') as file:
+    api = json.load(file)
+
+api_key = api['weatherKey']
+city = api['cityId']
 url = "http://api.openweathermap.org/data/2.5/weather?id=" + city + "&APPID=" + api_key + "&units=metric"
 url2 = "http://api.openweathermap.org/data/2.5/onecall?lat=50.4501&lon=-104.6178&APPID="\
        + api_key + "&units=metric&exclude=current,minutely,daily,alerts"

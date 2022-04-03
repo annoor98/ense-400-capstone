@@ -20,7 +20,7 @@ from weather import weather_result, temp_result, feel_result, forecast_result
 # Sets size of application screens
 # 456 810
 Window.size = (456, 810)
-#Window.fullscreen = True
+# Window.fullscreen = True
 
 # Sets microphone
 recognizer = sr.Recognizer()
@@ -30,6 +30,8 @@ gestures = True
 voice = True
 alarm = True
 alarmRun = False
+screenOff = False
+command = "Say 'mirror' followed by a command!"
 
 with open('devices.json', 'r') as file:
     devices = json.load(file)
@@ -56,11 +58,19 @@ class SettingsScreen(Screen):
         pass
 
 
-class TutorialScreen(Screen):
+class BlackScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
 
+    def update(self, screen):
+        pass
+
+
+class TutorialScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
 
     def update(self, screen):
         pass
@@ -70,7 +80,6 @@ class TutorialScreen2(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
-
 
     def update(self, screen):
         pass
@@ -85,14 +94,14 @@ class CalendarScreen(Screen):
         self.event3 = "No upcoming events"
         self.event4 = "No upcoming events"
 
-        #self.event = calendar.getEvents()
-        #if self.event:
-         #   if self.event[0]:
-          #      self.event1 = self.event[0]
-           # if self.event[1]:
-            #    self.event2 = self.event[1]
-            #if self.event[2]:
-             #   self.event3 = self.event[2]
+        # self.event = calendar.getEvents()
+        # if self.event:
+        #   if self.event[0]:
+        #      self.event1 = self.event[0]
+        # if self.event[1]:
+        #    self.event2 = self.event[1]
+        # if self.event[2]:
+        #   self.event3 = self.event[2]
 
     def update(self, screen):
         pass
@@ -175,13 +184,13 @@ class MainScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
-        #self.events = calendar.getEvents()
+        # self.events = calendar.getEvents()
         self.firstEventText = "No Upcoming Event"
 
-        #if self.events:
-         #   self.firstEventText = self.events[0]
-        #else:
-         #   self.firstEventText = "No upcoming events"
+        # if self.events:
+        #   self.firstEventText = self.events[0]
+        # else:
+        #   self.firstEventText = "No upcoming events"
 
     def update(self, screen):
         pass
@@ -206,13 +215,6 @@ class MenuScreen(Screen):
 
 
 class RoundedButton(Button):
-    back_color = ListProperty()
-
-    def change_color(self):
-        if self.back_color == [1, 1, 1, 1]:
-            self.back_color = [0, 1, 0, 1]
-        else:
-            self.back_color = [1, 1, 1, 1]
 
     def load_alarms(self):
         sound = SoundLoader.load('alarms/alarm_noise.wav')
@@ -220,13 +222,26 @@ class RoundedButton(Button):
             sound.play()
 
 
+class CommandLabel(Label):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+    def update(self, delta):
+        global command, voice
+        if voice is True:
+            self.text = command
+        else:
+            self.text = ""
+
+
 class AlarmsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1)
-        #if calendar.getAlarmEvent():
-         #   self.alarmTime = calendar.getAlarmEvent()[0]
-        #else:
+        # if calendar.getAlarmEvent():
+        #   self.alarmTime = calendar.getAlarmEvent()[0]
+        # else:
         self.alarmTime = "No Alarms Present"
 
     def update(self, delta):
@@ -260,7 +275,6 @@ class WindowManager(ScreenManager):
 
         stopListen = recognizer.listen_in_background(mic, self.audioCommand)
 
-
     def inputOption(self, i):
         global gestures, voice
         if i == 0:
@@ -277,14 +291,20 @@ class WindowManager(ScreenManager):
         self.transition.direction = 'up'
         self.current = 'main'
 
+    def toggleIoT(self, i):
+        if i == 0:
+            requests.get(devices['lights'])
+        else:
+            requests.get(devices['plugToggle'])
+
     def audioCommand(self, rec, source):
-        global commandMode, gestures, alarmRun
+        global commandMode, gestures, alarmRun, screenOff, command
         if voice is False:
             return None
         try:
             word = rec.recognize_google(source)
             if commandMode is False:
-                self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
+                command = "Say 'mirror' followed by a command!"
 
             if repr(self.current_screen) == "<Screen name='" + "settings" + "'>":
                 if word == "voice only":
@@ -293,6 +313,12 @@ class WindowManager(ScreenManager):
                     self.inputOption(0)
                 elif word == "both":
                     self.inputOption(2)
+                elif word == "screen off":
+                    self.transition.direction = 'up'
+                    self.current = 'blackscreen'
+                    command = "Say 'mirror' followed by a command!"
+                    commandMode = False
+                    screenOff = True
 
             if repr(self.current_screen) == "<Screen name='" + "tutorial" + "'>":
                 if word == "next":
@@ -305,62 +331,78 @@ class WindowManager(ScreenManager):
                     self.current = 'settings'
                     return None
 
+            if word == "screen on" and screenOff is True:
+                screenOff = False
+                self.transition.direction = 'up'
+                self.current = 'main'
 
             if word == "mirror" and commandMode is False and alarmRun is False:
                 commandMode = True
-                self.get_screen('main').ids.command_label.text = "listening..."
+                command = "listening..."
+
             elif commandMode is True and alarmRun is False:
-                if word == "alarm" or word == 'alarms':
+                if word == "alarm" or word == 'alarms' and screenOff is False:
                     self.transition.direction = 'up'
                     self.current = 'alarms'
-                    self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
+                    command = "Say 'mirror' followed by a command!"
                     commandMode = False
-                elif word == "guide":
+                elif word == "guide" and screenOff is False:
                     self.transition.direction = 'up'
                     self.current = 'tutorial'
-                    self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
+                    command = "Say 'mirror' followed by a command!"
                     commandMode = False
-                elif word == "events":
+                elif word == "screen off":
+                    self.transition.direction = 'up'
+                    self.current = 'blackscreen'
+                    command = "Say 'mirror' followed by a command!"
+                    commandMode = False
+                    screenOff = True
+                elif word == "events" and screenOff is False:
                     self.transition.direction = 'up'
                     self.current = 'events'
-                    self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
+                    command = "Say 'mirror' followed by a command!"
                     commandMode = False
-                elif word == "weather":
+                elif word == "weather" and screenOff is False:
                     self.transition.direction = 'up'
                     self.current = 'weather'
-                    self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
+                    command = "Say 'mirror' followed by a command!"
                     commandMode = False
-                elif word == "settings":
+                elif word == "settings" and screenOff is False:
                     self.transition.direction = 'up'
                     self.current = 'settings'
-                    self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
+                    command = "Say 'mirror' followed by a command!"
                     commandMode = False
                 elif word == "home":
                     self.transition.direction = 'up'
                     self.current = 'main'
-                    self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
+                    command = "Say 'mirror' followed by a command!"
                     commandMode = False
+                    screenOff = False
 
-                elif word == "toggle lights":
-                    self.get_screen('main').ids.command_label.text = "Toggle Lights"
-                    requests.get(devices['lights'])
+                elif word == "toggle light" and screenOff is False:
+                    command = "Toggle Light"
+                    self.toggleIoT(0)
                     commandMode = False
-                elif word == "turn off gestures":
+                elif word == "toggle switch" and screenOff is False:
+                    command = "Toggle Switch"
+                    self.toggleIoT(1)
+                    commandMode = False
+                elif word == "turn off gestures" and screenOff is False:
                     gestures = False
-                    self.get_screen('main').ids.command_label.text = word
+                    command = word
                     commandMode = False
-                elif word == "turn on gestures":
+                elif word == "turn on gestures" and screenOff is False:
                     gestures = True
-                    self.get_screen('main').ids.command_label.text = word
+                    command = word
                     commandMode = False
                 else:
                     commandMode = False
-                    self.get_screen('main').ids.command_label.text = "Say 'mirror' followed by a command!"
+                    command = "Say 'mirror' followed by a command!"
             elif word == "stop" and alarmRun is True:
                 self.transition.direction = 'up'
                 requests.get(devices['lightsAlarmOff'])
                 self.current = 'main'
-
+            print(word)
         except sr.UnknownValueError:
             print("Could not understand audio")
             commandMode = False
@@ -372,7 +414,6 @@ class WindowManager(ScreenManager):
         # Updates camera tracking and logic
         global gestures, alarmRun
         if gestures is True:
-            pass
             self.cam.run()
         if self.cam.gotoMain is True:
             if repr(self.current_screen) != "<Screen name='" + "main" + "'>":
@@ -414,7 +455,6 @@ class WindowManager(ScreenManager):
 class mirrorApp(App):
     # Creates new camera object from camera class
     cam = camera(1)
-    pass
 
 
 mirrorApp().run()

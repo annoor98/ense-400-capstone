@@ -33,7 +33,7 @@ class camera:
         self.holdPos = -1
 
         # 456,810
-        self.tracker = tracker(456, 810)
+        self.tracker = tracker(1920, 1080)
 
     def run(self):
         success, img = self.capture.read()

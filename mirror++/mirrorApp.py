@@ -273,7 +273,8 @@ class WindowManager(ScreenManager):
             print("Listening...")
             print("Obtained audio...")
 
-        stopListen = recognizer.listen_in_background(mic, self.audioCommand)
+        # Listens for sound in the background in blocks of 2 seconds
+        stopListen = recognizer.listen_in_background(mic, self.audioCommand, 2)
 
     def inputOption(self, i):
         global gestures, voice

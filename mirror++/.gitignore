@@ -3,4 +3,4 @@
 /venv
 devices.json
 token.pkl
-calendarSecret.json
+eventsSecret.json

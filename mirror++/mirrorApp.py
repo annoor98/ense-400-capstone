@@ -1,91 +1,341 @@
+"""Main application file for Mirror++. Just run this python file to launch application."""
 import datetime
 import time
-import requests
 import json
+import requests
 import speech_recognition as sr
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
 from kivy.uix.label import Label
 from kivy.core.window import Window
-from kivy.properties import ListProperty
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.screenmanager import ScreenManager, Screen
 
-from camera import camera
-import calendarScreen as calendar
+from camera import Camera
+import events as events_screen
 from weather import weather_result, temp_result, feel_result, forecast_result
 
-# Sets size of application screens
-# 456 810
-Window.size = (456, 810)
+# Sets size of application screen
+WINDOWX = 456
+WINDOWY = 810
+
+Window.size = (WINDOWX, WINDOWY)
 # Window.fullscreen = True
 
 # Sets microphone
 recognizer = sr.Recognizer()
 mic = sr.Microphone()
-commandMode = False
+command_mode = False
+
 gestures = True
 voice = True
 alarm = True
-alarmRun = False
-screenOff = False
+alarm_run = False
+screen_off = False
 command = "Say 'mirror' followed by a command!"
+
+CAMERA_VAL = 1
 
 with open('devices.json', 'r') as file:
     devices = json.load(file)
 
 
-# List of classes for every screen and widget component
-class ClockLabel(Label):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.text = f"[u]{time.strftime('%I:%M:%S')}[/u]"
-        Clock.schedule_interval(self.update, 1)
+# ScreenManager class handles all other screens
+class WindowManager(ScreenManager):
+    """Kivy Window Manager that handles entire user interface"""
 
-    def update(self, *args):
-        self.text = f"[u]{time.strftime('%I:%M:%S')}[/u]"
-
-
-class SettingsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
-        self.tState = 0
+        self.cam = mirrorApp.cam
+        self.poll_audio()
+        self.swiped = False
 
-    def update(self, screen):
-        pass
+    def poll_audio(self):
+        """function that polls audio in the background"""
+        with mic as source:
+            recognizer.adjust_for_ambient_noise(source)
+            print("Listening...")
+            print("Obtained audio...")
 
+        # Listens for sound in the background in blocks of 1 second
+        stopListen = recognizer.listen_in_background(mic, self.detect_voice_command, 1)
 
-class BlackScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Clock.schedule_interval(self.update, 1 / 30)
+    def input_option(self, i):
+        """Changes navigation type"""
+        global gestures, voice
+        if i == 0:
+            voice = False
+            gestures = True
+        elif i == 1:
+            gestures = False
+            voice = True
+            Window.show_cursor = False
+        else:
+            voice = True
+            gestures = True
 
-    def update(self, screen):
-        pass
+        self.transition.direction = 'up'
+        self.current = 'main'
+
+    def toggle_iot_device(self, i):
+        """Toggles IoT devices"""
+        if i == 0:
+            requests.get(devices['lights'])
+        else:
+            requests.get(devices['plugToggle'])
+
+    def detect_voice_command(self, rec, source):
+        """Function that detects commands in polled audio"""
+        global command_mode, gestures, alarm_run, screen_off, command
+        if voice is False:
+            return None
+        try:
+            word = rec.recognize_google(source)
+            if command_mode is False:
+                command = "Say 'mirror' followed by a command!"
+
+            if repr(self.current_screen) == "<Screen name='" + "settings" + "'>":
+                if word == "voice only":
+                    self.input_option(1)
+                elif word == "gesture only" or word == "gestures only":
+                    self.input_option(0)
+                elif word == "both":
+                    self.input_option(2)
+                elif word == "screen off":
+                    self.transition.direction = 'up'
+                    self.current = 'blackscreen'
+                    command = "Say 'mirror' followed by a command!"
+                    command_mode = False
+                    screen_off = True
+
+            if repr(self.current_screen) == "<Screen name='" + "tutorial" + "'>":
+                if word == "next":
+                    self.transition.direction = 'up'
+                    self.current = 'tutorialVoice'
+                    return None
+            if repr(self.current_screen) == "<Screen name='" + "tutorialVoice" + "'>":
+                if word == "next":
+                    self.transition.direction = 'up'
+                    self.current = 'settings'
+                    return None
+
+            if word == "screen on" and screen_off is True:
+                screen_off = False
+                self.transition.direction = 'up'
+                self.current = 'main'
+
+            if word == "mirror" and command_mode is False and alarm_run is False:
+                command_mode = True
+                command = "listening..."
+
+            elif command_mode is True and alarm_run is False:
+                if word == "alarm" or word == 'alarms' and screen_off is False:
+                    self.transition.direction = 'up'
+                    self.current = 'alarms'
+                    command = "Say 'mirror' followed by a command!"
+                    command_mode = False
+                elif word == "guide" and screen_off is False:
+                    self.transition.direction = 'up'
+                    self.current = 'tutorial'
+                    command = "Say 'mirror' followed by a command!"
+                    command_mode = False
+                elif word == "screen off":
+                    self.transition.direction = 'up'
+                    self.current = 'blackscreen'
+                    command = "Say 'mirror' followed by a command!"
+                    command_mode = False
+                    screen_off = True
+                elif word == "events" and screen_off is False:
+                    self.transition.direction = 'up'
+                    self.current = 'events'
+                    command = "Say 'mirror' followed by a command!"
+                    command_mode = False
+                elif word == "weather" and screen_off is False:
+                    self.transition.direction = 'up'
+                    self.current = 'weather'
+                    command = "Say 'mirror' followed by a command!"
+                    command_mode = False
+                elif word == "settings" and screen_off is False:
+                    self.transition.direction = 'up'
+                    self.current = 'settings'
+                    command = "Say 'mirror' followed by a command!"
+                    command_mode = False
+                elif word == "home":
+                    self.transition.direction = 'up'
+                    self.current = 'main'
+                    command = "Say 'mirror' followed by a command!"
+                    command_mode = False
+                    screen_off = False
+
+                elif word == "toggle light" and screen_off is False:
+                    command = "Toggle Light"
+                    self.toggle_iot_device(0)
+                    command_mode = False
+                elif word == "toggle switch" and screen_off is False:
+                    command = "Toggle Switch"
+                    self.toggle_iot_device(1)
+                    command_mode = False
+                elif word == "turn off gestures" and screen_off is False:
+                    gestures = False
+                    command = word
+                    command_mode = False
+                elif word == "turn on gestures" and screen_off is False:
+                    gestures = True
+                    command = word
+                    command_mode = False
+                else:
+                    command_mode = False
+                    command = "Say 'mirror' followed by a command!"
+            elif word == "stop" and alarm_run is True:
+                self.transition.direction = 'up'
+                requests.get(devices['lightsAlarmOff'])
+                self.current = 'main'
+            print(word)
+        except sr.UnknownValueError:
+            print("Could not understand audio")
+            command_mode = False
+        except sr.RequestError as err:
+            print("Sphinx error; {0}".format(err))
+
+    # Update function is called every 30sec
+    def update(self, delta):
+        """Update function for Kivy classes. This one handles most logic"""
+        # Updates camera tracking and logic
+        global gestures, alarm_run
+        if gestures is True:
+            self.cam.run()
+        if self.cam.go_to_main is True:
+            if repr(self.current_screen) != "<Screen name='" + "main" + "'>":
+                self.transition.direction = 'up'
+                self.current = 'main'
+        if self.cam.on_screen is True:
+            self.detect_screen_change()
+
+        if alarm_run:
+            self.transition.direction = 'up'
+            self.current = 'alarm'
+
+    # Changes screen depending on hand gesture
+    def detect_screen_change(self):
+        """Function for changing screens depending on gesture"""
+        global alarm_run
+        if self.cam.get_gesture() == 5 and self.swiped is False and alarm_run is False:
+            self.transition.direction = 'left'
+            if repr(self.current_screen) == "<Screen name='" + "menu" + "'>":
+                self.current = 'main'
+            elif repr(self.current_screen) == "<Screen name='" + "main" + "'>":
+                self.current = 'settings'
+            self.swiped = True
+        elif self.cam.get_gesture() == 4 and self.swiped is False and alarm_run is False:
+            self.transition.direction = 'right'
+            if repr(self.current_screen) == "<Screen name='" + "main" + "'>":
+                self.current = 'menu'
+            elif repr(self.current_screen) == "<Screen name='" + "settings" + "'>":
+                self.current = 'main'
+            self.swiped = True
+        elif self.cam.get_gesture() != 4 and self.cam.get_gesture() != 5 and alarm_run is False:
+            self.swiped = False
+        elif self.cam.get_gesture() == 3 and alarm_run is True:
+            self.current = 'main'
+            alarm_run = False
+            requests.get(devices['lightsAlarmOff'])
 
 
 class TutorialScreen(Screen):
+    """First Tutorial Kivy Page"""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
 
     def update(self, screen):
-        pass
+        """Update function for Kivy classes"""
 
 
 class TutorialScreen2(Screen):
+    """Second Tutorial Kivy Page"""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
 
     def update(self, screen):
-        pass
+        """Update function for Kivy classes"""
 
 
-class CalendarScreen(Screen):
+class MainScreen(Screen):
+    """Main Screen Kivy Page"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+        # self.events = events_screen.get_events()
+        self.first_event_text = "No Upcoming Event"
+
+        # if self.events:
+        #   self.first_event_text = self.events[0]
+        # else:
+        #   self.first_event_text = "No upcoming events"
+
+    def update(self, screen):
+        """Update function for Kivy classes"""
+
+
+class MenuScreen(Screen):
+    """Menu Kivy Page"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+    def update(self, delta):
+        """Update function for Kivy classes"""
+
+
+class IotScreen(Screen):
+    """IoT Devices Kivy Page"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+    def update(self, delta):
+        """Update function for Kivy classes"""
+
+
+class AlarmsScreen(Screen):
+    """Alarms Kivy Page"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1)
+        # if events_screen.get_alarm_event():
+        #   self.alarm_time = events_screen.get_alarm_event()[0]
+        # else:
+        self.alarm_time = "No Alarms Present"
+
+    def update(self, delta):
+        """Update function for Kivy classes"""
+        self.check_alarm()
+
+    def check_alarm(self):
+        """Function that checks if alarm should run"""
+        global alarm, alarm_run
+        currentTime = datetime.datetime.now().strftime("%H:%M")
+        if currentTime == self.alarm_time and alarm is True:
+            requests.get(devices['lightsAlarm'])
+            alarm_run = True
+            alarm = False
+        if alarm_run is True:
+            self.alarm_time = "ALARM RUNNING! SAY 'STOP' OR MAKE Home Gesture!"
+
+
+class EventsScreen(Screen):
+    """Events Widget Kivy Page"""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
@@ -94,7 +344,7 @@ class CalendarScreen(Screen):
         self.event3 = "No upcoming events"
         self.event4 = "No upcoming events"
 
-        # self.event = calendar.getEvents()
+        # self.event = events_screen.get_events()
         # if self.event:
         #   if self.event[0]:
         #      self.event1 = self.event[0]
@@ -104,10 +354,84 @@ class CalendarScreen(Screen):
         #   self.event3 = self.event[2]
 
     def update(self, screen):
-        pass
+        """Update function for Kivy classes"""
+
+
+class WeatherScreen(Screen):
+    """Weather Screen Kivy Page"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+    def update(self, delta):
+        """Update function for Kivy classes"""
+
+
+class BlackScreen(Screen):
+    """Black Screen Kivy Page"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+    def update(self, screen):
+        """Update function for Kivy classes"""
+
+
+class SettingsScreen(Screen):
+    """Settings Screen Kivy Page"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+    def update(self, screen):
+        """Update function for Kivy classes"""
+
+
+class RoundedButton(Button):
+    """Rounded Button Kivy Component"""
+
+    def load_alarms(self):
+        """Function to load alarm sound"""
+        sound = SoundLoader.load('alarms/alarm_noise.wav')
+        if ClockLabel.text == self.ids.test.text:
+            sound.play()
+
+
+class CommandLabel(Label):
+    """Voice Command Kivy Label"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
+
+    def update(self, delta):
+        """Update function for Kivy classes. Updates text with voice commands"""
+        global command, voice
+        if voice is True:
+            self.text = command
+        else:
+            self.text = ""
+
+
+class ClockLabel(Label):
+    """Clock Kivy Widget"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.text = f"[u]{time.strftime('%I:%M:%S')}[/u]"
+        Clock.schedule_interval(self.update, 1)
+
+    def update(self, *args):
+        """Update function for Kivy classes"""
+        self.text = f"[u]{time.strftime('%I:%M:%S')}[/u]"
 
 
 class WeatherIcon(Image):
+    """Weather Icon Widget for Weather and main page"""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
@@ -124,10 +448,12 @@ class WeatherIcon(Image):
             self.source = 'images/sunny.PNG'
 
     def update(self, delta):
-        pass
+        """Update function for Kivy classes"""
 
 
 class TempLabel(Label):
+    """Temperature Kivy Label"""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
@@ -135,10 +461,12 @@ class TempLabel(Label):
         self.text = temp_result + "°C"
 
     def update(self, delta):
-        pass
+        """Update function for Kivy classes"""
 
 
 class WeatherLabel(Label):
+    """Weather Kivy Label for Weather Page"""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
@@ -146,10 +474,12 @@ class WeatherLabel(Label):
         self.text = weather_result
 
     def update(self, delta):
-        pass
+        """Update function for Kivy classes"""
 
 
 class FeelsLabel(Label):
+    """Feels Like Kivy Label for Weather Page"""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
@@ -157,10 +487,12 @@ class FeelsLabel(Label):
         self.text = feel_result + "°C"
 
     def update(self, delta):
-        pass
+        """Update function for Kivy classes"""
 
 
 class ForecastLabel(Label):
+    """Forecast Label for Weather Page"""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
@@ -168,294 +500,13 @@ class ForecastLabel(Label):
         self.text = forecast_result + "°C"
 
     def update(self, delta):
-        pass
-
-
-class WeatherScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Clock.schedule_interval(self.update, 1 / 30)
-
-    def update(self, delta):
-        pass
-
-
-class MainScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Clock.schedule_interval(self.update, 1 / 30)
-        # self.events = calendar.getEvents()
-        self.firstEventText = "No Upcoming Event"
-
-        # if self.events:
-        #   self.firstEventText = self.events[0]
-        # else:
-        #   self.firstEventText = "No upcoming events"
-
-    def update(self, screen):
-        pass
-
-
-class LightsScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Clock.schedule_interval(self.update, 1 / 30)
-
-    def update(self, delta):
-        pass
-
-
-class MenuScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Clock.schedule_interval(self.update, 1 / 30)
-
-    def update(self, delta):
-        pass
-
-
-class RoundedButton(Button):
-
-    def load_alarms(self):
-        sound = SoundLoader.load('alarms/alarm_noise.wav')
-        if ClockLabel.text == self.ids.test.text:
-            sound.play()
-
-
-class CommandLabel(Label):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Clock.schedule_interval(self.update, 1 / 30)
-
-    def update(self, delta):
-        global command, voice
-        if voice is True:
-            self.text = command
-        else:
-            self.text = ""
-
-
-class AlarmsScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Clock.schedule_interval(self.update, 1)
-        # if calendar.getAlarmEvent():
-        #   self.alarmTime = calendar.getAlarmEvent()[0]
-        # else:
-        self.alarmTime = "No Alarms Present"
-
-    def update(self, delta):
-        self.alarmLight()
-
-    def alarmLight(self):
-        global alarm, alarmRun
-        currentTime = datetime.datetime.now().strftime("%H:%M")
-        if currentTime == self.alarmTime and alarm is True:
-            requests.get(devices['lightsAlarm'])
-            alarmRun = True
-            alarm = False
-        if alarmRun is True:
-            self.alarmTime = "ALARM RUNNING! SAY 'STOP' OR MAKE Home Gesture!"
-
-
-# ScreenManager class handles all other screens
-class WindowManager(ScreenManager):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Clock.schedule_interval(self.update, 1 / 30)
-        self.cam = mirrorApp.cam
-        self.pollAudio()
-        self.swiped = False
-
-    def pollAudio(self):
-        with mic as source:
-            recognizer.adjust_for_ambient_noise(source)
-            print("Listening...")
-            print("Obtained audio...")
-
-        # Listens for sound in the background in blocks of 2 seconds
-        stopListen = recognizer.listen_in_background(mic, self.audioCommand, 2)
-
-    def inputOption(self, i):
-        global gestures, voice
-        if i == 0:
-            voice = False
-            gestures = True
-        elif i == 1:
-            gestures = False
-            voice = True
-            Window.show_cursor = False
-        else:
-            voice = True
-            gestures = True
-
-        self.transition.direction = 'up'
-        self.current = 'main'
-
-    def toggleIoT(self, i):
-        if i == 0:
-            requests.get(devices['lights'])
-        else:
-            requests.get(devices['plugToggle'])
-
-    def audioCommand(self, rec, source):
-        global commandMode, gestures, alarmRun, screenOff, command
-        if voice is False:
-            return None
-        try:
-            word = rec.recognize_google(source)
-            if commandMode is False:
-                command = "Say 'mirror' followed by a command!"
-
-            if repr(self.current_screen) == "<Screen name='" + "settings" + "'>":
-                if word == "voice only":
-                    self.inputOption(1)
-                elif word == "gestures only" or word == "gestures only":
-                    self.inputOption(0)
-                elif word == "both":
-                    self.inputOption(2)
-                elif word == "screen off":
-                    self.transition.direction = 'up'
-                    self.current = 'blackscreen'
-                    command = "Say 'mirror' followed by a command!"
-                    commandMode = False
-                    screenOff = True
-
-            if repr(self.current_screen) == "<Screen name='" + "tutorial" + "'>":
-                if word == "next":
-                    self.transition.direction = 'up'
-                    self.current = 'tutorialVoice'
-                    return None
-            if repr(self.current_screen) == "<Screen name='" + "tutorialVoice" + "'>":
-                if word == "next":
-                    self.transition.direction = 'up'
-                    self.current = 'settings'
-                    return None
-
-            if word == "screen on" and screenOff is True:
-                screenOff = False
-                self.transition.direction = 'up'
-                self.current = 'main'
-
-            if word == "mirror" and commandMode is False and alarmRun is False:
-                commandMode = True
-                command = "listening..."
-
-            elif commandMode is True and alarmRun is False:
-                if word == "alarm" or word == 'alarms' and screenOff is False:
-                    self.transition.direction = 'up'
-                    self.current = 'alarms'
-                    command = "Say 'mirror' followed by a command!"
-                    commandMode = False
-                elif word == "guide" and screenOff is False:
-                    self.transition.direction = 'up'
-                    self.current = 'tutorial'
-                    command = "Say 'mirror' followed by a command!"
-                    commandMode = False
-                elif word == "screen off":
-                    self.transition.direction = 'up'
-                    self.current = 'blackscreen'
-                    command = "Say 'mirror' followed by a command!"
-                    commandMode = False
-                    screenOff = True
-                elif word == "events" and screenOff is False:
-                    self.transition.direction = 'up'
-                    self.current = 'events'
-                    command = "Say 'mirror' followed by a command!"
-                    commandMode = False
-                elif word == "weather" and screenOff is False:
-                    self.transition.direction = 'up'
-                    self.current = 'weather'
-                    command = "Say 'mirror' followed by a command!"
-                    commandMode = False
-                elif word == "settings" and screenOff is False:
-                    self.transition.direction = 'up'
-                    self.current = 'settings'
-                    command = "Say 'mirror' followed by a command!"
-                    commandMode = False
-                elif word == "home":
-                    self.transition.direction = 'up'
-                    self.current = 'main'
-                    command = "Say 'mirror' followed by a command!"
-                    commandMode = False
-                    screenOff = False
-
-                elif word == "toggle light" and screenOff is False:
-                    command = "Toggle Light"
-                    self.toggleIoT(0)
-                    commandMode = False
-                elif word == "toggle switch" and screenOff is False:
-                    command = "Toggle Switch"
-                    self.toggleIoT(1)
-                    commandMode = False
-                elif word == "turn off gestures" and screenOff is False:
-                    gestures = False
-                    command = word
-                    commandMode = False
-                elif word == "turn on gestures" and screenOff is False:
-                    gestures = True
-                    command = word
-                    commandMode = False
-                else:
-                    commandMode = False
-                    command = "Say 'mirror' followed by a command!"
-            elif word == "stop" and alarmRun is True:
-                self.transition.direction = 'up'
-                requests.get(devices['lightsAlarmOff'])
-                self.current = 'main'
-            print(word)
-        except sr.UnknownValueError:
-            print("Could not understand audio")
-            commandMode = False
-        except sr.RequestError as e:
-            print("Sphinx error; {0}".format(e))
-
-    # Update function is called every 30sec
-    def update(self, delta):
-        # Updates camera tracking and logic
-        global gestures, alarmRun
-        if gestures is True:
-            self.cam.run()
-        if self.cam.gotoMain is True:
-            if repr(self.current_screen) != "<Screen name='" + "main" + "'>":
-                self.transition.direction = 'up'
-                self.current = 'main'
-        if self.cam.onScreen is True:
-            self.gestureLogic()
-
-        if alarmRun:
-            self.transition.direction = 'up'
-            self.current = 'alarm'
-
-    # Changes screen depending on direction and speed the hand swipes
-    def gestureLogic(self):
-        global alarmRun
-        if self.cam.getGesture() == 5 and self.swiped is False and alarmRun is False:
-            self.transition.direction = 'left'
-            if repr(self.current_screen) == "<Screen name='" + "menu" + "'>":
-                self.current = 'main'
-            elif repr(self.current_screen) == "<Screen name='" + "main" + "'>":
-                self.current = 'settings'
-            self.swiped = True
-        elif self.cam.getGesture() == 4 and self.swiped is False and alarmRun is False:
-            self.transition.direction = 'right'
-            if repr(self.current_screen) == "<Screen name='" + "main" + "'>":
-                self.current = 'menu'
-            elif repr(self.current_screen) == "<Screen name='" + "settings" + "'>":
-                self.current = 'main'
-            self.swiped = True
-        elif self.cam.getGesture() != 4 and self.cam.getGesture() != 5 and alarmRun is False:
-            self.swiped = False
-        elif self.cam.getGesture() == 3 and alarmRun is True:
-            self.current = 'main'
-            alarmRun = False
-            requests.get(devices['lightsAlarmOff'])
+        """Update function for Kivy classes"""
 
 
 # Main application class
 class mirrorApp(App):
     # Creates new camera object from camera class
-    cam = camera(1)
+    cam = Camera(CAMERA_VAL)
 
 
 mirrorApp().run()

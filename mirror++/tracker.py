@@ -1,100 +1,120 @@
+"""Tracker class keeps track of gestures and cursor controls based on camera feed"""
 import numpy as np
 import autopy
 
+BOUND = 100
 
-class tracker:
 
-    def __init__(self, width, height):
+class Tracker:
+    """Tracker class takes the monitor and camera dimensions"""
+
+    def __init__(self, width, height, cam_w, cam_h):
         # Gets size of monitor
-        self.monitorWidth = width
-        self.monitorHeight = height
+        self.monitor_width = width
+        self.monitor_height = height
 
         # Creates a bounding box for mouse detection to work in
-        self.boundx = 100
-        self.boundy = 100
-        self.mouseClicked = False
+        self.bound_x = BOUND
+        self.bound_y = BOUND
+        self.mouse_clicked = False
 
         # Mouse smoothing value
-        self.smoothVal = 6
-        self.prevX, self.prevY = 0, 0
-        self.currX, self.currY = 0, 0
+        self.smooth_val = 6
+        self.prev_x, self.prev_y = 0, 0
+        self.curr_x, self.curr_y = 0, 0
 
-        self.camWidth, self.camHeight = 640, 480
+        self.cam_width, self.cam_height = cam_w, cam_h
+        self.landmarks = None
 
-    # Functions for hand gesture detection
-    def isFist(self, landmarks):
-        if landmarks[8][1] > (landmarks[6][1] + 10) and landmarks[12][1] > (landmarks[10][1] + 10) \
-                and landmarks[16][1] > landmarks[14][1] and landmarks[20][1] > landmarks[18][1]:
+    def update_landmark(self, landmarks):
+        """Updates Hand Landmarks from camera feed"""
+        self.landmarks = landmarks
+
+    def is_fist(self):
+        """Uses hand landmarks to detect if its making a fist"""
+        if self.landmarks[8][1] > (self.landmarks[6][1] + 10) and \
+                self.landmarks[12][1] > (self.landmarks[10][1] + 10) and \
+                self.landmarks[16][1] > self.landmarks[14][1] and \
+                self.landmarks[20][1] > self.landmarks[18][1]:
             return True
-        else:
-            return False
+        return False
 
-    def isIndexUp(self, landmarks):
-        if landmarks[8][1] < landmarks[6][1] - 20 and landmarks[12][1] < landmarks[9][1] - 20 \
-                and landmarks[16][1] > landmarks[14][1] and landmarks[20][1] > landmarks[18][1]:
+    def is_peace_sign(self):
+        """Uses hand landmarks to detect if its making a peace sign"""
+        if self.landmarks[8][1] < self.landmarks[6][1] - 20 and \
+                self.landmarks[12][1] < self.landmarks[9][1] - 20 and \
+                self.landmarks[16][1] > self.landmarks[14][1] and \
+                self.landmarks[20][1] > self.landmarks[18][1]:
             return True
-        else:
-            return False
+        return False
 
-    def isOpenPalm(self, landmarks):
-        if landmarks[8][1] < landmarks[6][1] and landmarks[12][1] < landmarks[9][1] \
-                and landmarks[16][1] < landmarks[14][1] and landmarks[20][1] < landmarks[18][1] \
-                and landmarks[16][1] < landmarks[6][1]:
+    def is_open_palm(self):
+        """Uses hand landmarks to detect if its making an open palm"""
+        if self.landmarks[8][1] < self.landmarks[6][1] and \
+                self.landmarks[12][1] < self.landmarks[9][1] and \
+                self.landmarks[16][1] < self.landmarks[14][1] and \
+                self.landmarks[20][1] < self.landmarks[18][1] and \
+                self.landmarks[16][1] < self.landmarks[6][1]:
             return True
-        else:
-            return False
+        return False
 
-    def isLeft(self, landmarks):
-        if landmarks[8][0] > landmarks[6][0] and landmarks[12][0] > landmarks[9][0] \
-                and landmarks[16][0] > landmarks[14][0] and landmarks[20][0] > landmarks[18][0] \
-                and landmarks[16][1] > landmarks[6][1]:
+    def is_left(self):
+        """Uses hand landmarks to detect if its making a left gesture"""
+        if self.landmarks[8][0] > self.landmarks[6][0] and \
+                self.landmarks[12][0] > self.landmarks[9][0] and \
+                self.landmarks[16][0] > self.landmarks[14][0] and \
+                self.landmarks[20][0] > self.landmarks[18][0] and \
+                self.landmarks[16][1] > self.landmarks[6][1]:
             return True
-        else:
-            return False
+        return False
 
-    def isRight(self, landmarks):
-        if landmarks[8][0] < landmarks[6][0] and landmarks[12][0] < landmarks[9][0] \
-                and landmarks[16][0] < landmarks[14][0] and landmarks[20][0] < landmarks[18][0] \
-                and landmarks[16][1] > landmarks[6][1]:
+    def is_right(self):
+        """Uses hand landmarks to detect if its making a right gesture"""
+        if self.landmarks[8][0] < self.landmarks[6][0] and \
+                self.landmarks[12][0] < self.landmarks[9][0] and \
+                self.landmarks[16][0] < self.landmarks[14][0] and \
+                self.landmarks[20][0] < self.landmarks[18][0] and \
+                self.landmarks[16][1] > self.landmarks[6][1]:
             return True
-        else:
-            return False
+        return False
 
-    def mouseDetect(self, landmarks):
+    def mouse_detect(self):
+        """Calculates cursor position based on tracked hand position on camera feed"""
         # Current location of the wrist
-        palmX = landmarks[0][0]
-        palmY = landmarks[0][1]
+        palm_x = self.landmarks[0][0]
+        palm_y = self.landmarks[0][1]
 
         # Prevents mouse from going out of bounds
-        if palmX > self.monitorWidth - self.boundx:
-            palmX = self.monitorWidth - self.boundx
-        if palmX < self.boundx + 20:
-            palmX = self.boundx + 20
-        if palmY > self.monitorHeight - self.boundy:
-            palmY = self.monitorHeight - self.boundy
-        if palmY < self.boundy + 20:
-            palmY = self.boundy + 20
+        if palm_x > self.monitor_width - self.bound_x:
+            palm_x = self.monitor_width - self.bound_x
+        if palm_x < self.bound_x + 20:
+            palm_x = self.bound_x + 20
+        if palm_y > self.monitor_height - self.bound_y:
+            palm_y = self.monitor_height - self.bound_y
+        if palm_y < self.bound_y + 20:
+            palm_y = self.bound_y + 20
 
         # Interpolates mouse position on screen relative to wrist position on camera feed
-        x = np.interp(palmX, (self.boundx, self.camWidth - self.boundx), (0, self.monitorWidth))
-        y = np.interp(palmY, (self.boundy, self.camHeight - self.boundy), (0, self.monitorHeight))
-
+        mouse_x = np.interp(palm_x, (self.bound_x, self.cam_width - self.bound_x),
+                            (0, self.monitor_width))
+        mouse_y = np.interp(palm_y, (self.bound_y, self.cam_height - self.bound_y),
+                            (0, self.monitor_height))
 
         # Smoothes out mouse movement
-        self.currX = self.prevX + (x - self.prevX) / self.smoothVal
-        self.currY = self.prevY + (y - self.prevY) / self.smoothVal
+        self.curr_x = self.prev_x + (mouse_x - self.prev_x) / self.smooth_val
+        self.curr_y = self.prev_y + (mouse_y - self.prev_y) / self.smooth_val
 
         # Updates mouse position
-        autopy.mouse.move(self.monitorWidth - self.currX, self.currY)
+        autopy.mouse.move(self.monitor_width - self.curr_x, self.curr_y)
 
-        self.prevX, self.prevY = self.currX, self.currY
+        self.prev_x, self.prev_y = self.curr_x, self.curr_y
 
         # Another mouse click will not get triggered until an open palm is made again
-        if self.isOpenPalm(landmarks):
-            self.mouseClicked = False
+        if self.is_open_palm():
+            self.mouse_clicked = False
 
-    def mouseClick(self, landmarks):
-        # Triggers a mouse click if a fist is made
-        if self.isFist(landmarks) and self.mouseClicked is False:
-            self.mouseClicked = True
+    def mouse_click(self):
+        """Triggers mouse click if fist gesture is detected"""
+        if self.is_fist() and self.mouse_clicked is False:
+            self.mouse_clicked = True
             autopy.mouse.click()

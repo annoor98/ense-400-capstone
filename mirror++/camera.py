@@ -1,54 +1,61 @@
+"""Camera class runs the openCV module for gesture detection"""
+import time
 import cv2
 import mediapipe as mp
-import time
-from tracker import tracker
+from tracker import Tracker
+
+CAMWIDTH = 640
+CAMHEIGHT = 480
+MONITORW = 2560
+MONITORH = 1080
 
 
-class camera:
-
+class Camera:
+    """Camera class takes in id to determine which camera in system to use"""
     def __init__(self, cam_id):
-        self.camWidth = 640
-        self.camHeight = 480
+        self.cam_width = CAMWIDTH
+        self.cam_height = CAMHEIGHT
 
         self.capture = cv2.VideoCapture(cam_id, cv2.CAP_DSHOW)
 
-        self.capture.set(3, self.camWidth)
-        self.capture.set(4, self.camHeight)
+        self.capture.set(3, self.cam_width)
+        self.capture.set(4, self.cam_height)
 
-        self.mpHands = mp.solutions.hands
-        self.mpDraw = mp.solutions.drawing_utils
-        self.hands = self.mpHands.Hands(max_num_hands=1)
+        self.mp_hands = mp.solutions.hands
+        self.mp_draw = mp.solutions.drawing_utils
+        self.hands = self.mp_hands.Hands(max_num_hands=1)
 
-        self.isPalm = True
-        self.onScreen = False
+        self.is_palm = True
+        self.on_screen = False
 
         # For fps tracking
-        self.oldTime = 0
-        self.newTime = 0
+        self.old_time = 0
+        self.new_time = 0
 
-        self.gestureText = ""
-        self.gotoMain = False
+        self.gesture_text = ""
+        self.go_to_main = False
         self.gesture = 0
-        self.holdTimer = 0
-        self.holdPos = -1
+        self.hold_timer = 0
+        self.hold_position = -1
 
         # 456,810
-        self.tracker = tracker(1920, 1080)
+        self.tracker = Tracker(MONITORW, MONITORH, CAMWIDTH, CAMHEIGHT)
 
     def run(self):
+        """Runs one frame of image processing"""
         success, img = self.capture.read()
         # convert image to rgb because hands only takes in rgb images
-        imageRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        results = self.hands.process(imageRGB)
+        image_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        results = self.hands.process(image_rgb)
 
         # If at least 1 hand is present in screen
         if results.multi_hand_landmarks:
-            self.onScreen = True
+            self.on_screen = True
             # Extract info of each hand (landmarks = location of hand) and draw points on screen
             for landmarks in results.multi_hand_landmarks:
 
-                # Dictionary contains list of hand joints we'll be using for fist gesture calculation
-                landmarkCalc = {
+                # Dictionary contains list of hand joints we'll be using for gesture calculation
+                hand_landmarks = {
                     0: 0,
                     1: 0,
                     4: 0,
@@ -64,93 +71,100 @@ class camera:
                 }
 
                 # Gets individual point values
-                for hid, lm in enumerate(landmarks.landmark):
+                for hid, land_m in enumerate(landmarks.landmark):
                     # Gets height, width and channel of our canvas
                     height, width, channel = img.shape
-                    xPos = int(lm.x * width)
-                    yPos = int(lm.y * height)
+                    x_pos = int(land_m.x * width)
+                    y_pos = int(land_m.y * height)
 
                     # Updates hand joints dictionary with each joints coordinates
-                    if hid in landmarkCalc:
-                        landmarkCalc[hid] = xPos, yPos
+                    if hid in hand_landmarks:
+                        hand_landmarks[hid] = x_pos, y_pos
+
+                self.tracker.update_landmark(hand_landmarks)
 
                 # updates mouse position based on hand's joint positions
-                self.tracker.mouseDetect(landmarkCalc)
+                self.tracker.mouse_detect()
 
                 # Detects if hands are making any specific gestures
-                if self.tracker.isFist(landmarkCalc):
-                    if self.holdPos == 2:
-                        self.holdTimer += 1
-                    else:
-                        self.holdPos = 2
-                        self.holdTimer = 0
-                    self.gestureText = "FIST"
-                    if self.holdTimer > 25:
-                        self.gesture = 2
-                        self.holdTimer = 0
-                        self.tracker.mouseClick(landmarkCalc)
-                        self.isPalm = False
-                        self.gotoMain = False
-                elif self.tracker.isOpenPalm(landmarkCalc):
-                    self.gestureText = "Open Palm"
-                    self.isPalm = True
-                    self.gotoMain = False
-                    self.gesture = 1
-                elif self.tracker.isIndexUp(landmarkCalc):
-                    if self.holdPos == 3:
-                        self.holdTimer += 1
-                    else:
-                        self.holdPos = 3
-                        self.holdTimer = 0
-                    self.gestureText = "Peace Sign"
-                    if self.holdTimer > 25:
-                        self.gesture = 3
-                        self.holdTimer = 0
-                        self.gotoMain = True
-                elif self.tracker.isLeft(landmarkCalc):
-                    if self.holdPos == 4:
-                        self.holdTimer += 1
-                    else:
-                        self.holdPos = 4
-                        self.holdTimer = 0
-                    self.gestureText = "LEFT"
-                    if self.holdTimer > 25:
-                        self.gesture = 4
-                        self.holdTimer = 0
-                elif self.tracker.isRight(landmarkCalc):
-                    if self.holdPos == 5:
-                        self.holdTimer += 1
-                    else:
-                        self.holdPos = 5
-                        self.holdTimer = 0
-                    self.gestureText = "RIGHT"
-                    if self.holdTimer > 25:
-                        self.gesture = 5
-                        self.holdTimer = 0
-                else:
-                    self.holdPos = -1
-                    self.holdTimer = 0
-                    self.gestureText = "NONE"
-                    self.gotoMain = False
-                    self.gesture = 0
+                self._gesture_detector()
 
-                self.mpDraw.draw_landmarks(img, landmarks, self.mpHands.HAND_CONNECTIONS)
+                # Uncomment for dev testing
+                self.mp_draw.draw_landmarks(img, landmarks, self.mp_hands.HAND_CONNECTIONS)
         else:
-            self.gestureText = "No Hands"
-            self.onScreen = False
+            self.gesture_text = "No Hands"
+            self.on_screen = False
 
         # Gets framerate of camera
-        self.newTime = time.time()
-        fps = 1 / (self.newTime - self.oldTime)
-        self.oldTime = self.newTime
+        self.new_time = time.time()
+        fps = 1 / (self.new_time - self.old_time)
+        self.old_time = self.new_time
 
-        # Displays framerate on image feed
-        cv2.putText(img, self.gestureText, (320, 70), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 255), 3)
+        # Displays framerate on image feed (uncomment for dev testing)
+        cv2.putText(img, self.gesture_text, (320, 70), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 255), 3)
         cv2.putText(img, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 3)
 
         cv2.imshow("Image", img)
         cv2.waitKey(1)
 
+    def _gesture_detector(self):
+        """Detects if hand is holding a gesture"""
+        if self.tracker.is_fist():
+            if self.hold_position == 2:
+                self.hold_timer += 1
+            else:
+                self.hold_position = 2
+                self.hold_timer = 0
+            self.gesture_text = "FIST"
+            if self.hold_timer > 25:
+                self.gesture = 2
+                self.hold_timer = 0
+                self.tracker.mouse_click()
+                self.is_palm = False
+                self.go_to_main = False
+        elif self.tracker.is_open_palm():
+            self.gesture_text = "Open Palm"
+            self.is_palm = True
+            self.go_to_main = False
+            self.gesture = 1
+        elif self.tracker.is_peace_sign():
+            if self.hold_position == 3:
+                self.hold_timer += 1
+            else:
+                self.hold_position = 3
+                self.hold_timer = 0
+            self.gesture_text = "Peace Sign"
+            if self.hold_timer > 25:
+                self.gesture = 3
+                self.hold_timer = 0
+                self.go_to_main = True
+        elif self.tracker.is_left():
+            if self.hold_position == 4:
+                self.hold_timer += 1
+            else:
+                self.hold_position = 4
+                self.hold_timer = 0
+            self.gesture_text = "LEFT"
+            if self.hold_timer > 25:
+                self.gesture = 4
+                self.hold_timer = 0
+        elif self.tracker.is_right():
+            if self.hold_position == 5:
+                self.hold_timer += 1
+            else:
+                self.hold_position = 5
+                self.hold_timer = 0
+            self.gesture_text = "RIGHT"
+            if self.hold_timer > 25:
+                self.gesture = 5
+                self.hold_timer = 0
+        else:
+            self.hold_position = -1
+            self.hold_timer = 0
+            self.gesture_text = "NONE"
+            self.go_to_main = False
+            self.gesture = 0
 
-    def getGesture(self):
+    def get_gesture(self):
+        """Returns which gesture is currently on camera feed"""
         return self.gesture

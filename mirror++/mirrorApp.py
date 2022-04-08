@@ -70,6 +70,7 @@ class WindowManager(ScreenManager):
         if i == 0:
             voice = False
             gestures = True
+            Window.show_cursor = True
         elif i == 1:
             gestures = False
             voice = True
@@ -77,6 +78,7 @@ class WindowManager(ScreenManager):
         else:
             voice = True
             gestures = True
+            Window.show_cursor = True
 
         self.transition.direction = 'up'
         self.current = 'main'

@@ -39,7 +39,7 @@ class Camera:
         self.hold_position = -1
 
         # 456,810
-        self.tracker = Tracker(MONITORW, MONITORH, CAMWIDTH, CAMHEIGHT)
+        self.tracker = Tracker(CAMWIDTH, CAMHEIGHT)
 
     def run(self):
         """Runs one frame of image processing"""

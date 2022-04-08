@@ -2,16 +2,15 @@
 import numpy as np
 import autopy
 
-BOUND = 100
+BOUND = 20
 
 
 class Tracker:
     """Tracker class takes the monitor and camera dimensions"""
 
-    def __init__(self, width, height, cam_w, cam_h):
+    def __init__(self, cam_w, cam_h):
         # Gets size of monitor
-        self.monitor_width = width
-        self.monitor_height = height
+        self.monitor_width, self.monitor_height = autopy.screen.size()
 
         # Creates a bounding box for mouse detection to work in
         self.bound_x = BOUND
@@ -84,15 +83,18 @@ class Tracker:
         palm_x = self.landmarks[0][0]
         palm_y = self.landmarks[0][1]
 
+        # Updates Screen Size in case the resolution changes due to fullscreen
+        self.monitor_width, self.monitor_height = autopy.screen.size()
+
         # Prevents mouse from going out of bounds
-        if palm_x > self.monitor_width - self.bound_x:
-            palm_x = self.monitor_width - self.bound_x
-        if palm_x < self.bound_x + 20:
-            palm_x = self.bound_x + 20
-        if palm_y > self.monitor_height - self.bound_y:
-            palm_y = self.monitor_height - self.bound_y
-        if palm_y < self.bound_y + 20:
-            palm_y = self.bound_y + 20
+        if palm_x > self.cam_width - self.bound_x:
+            palm_x = self.cam_width - self.bound_x
+        if palm_x < self.bound_x + self.bound_x:
+            palm_x = self.bound_x + self.bound_x
+        if palm_y > self.cam_height - self.bound_y:
+            palm_y = self.cam_height - self.bound_y
+        if palm_y < self.bound_y + self.bound_y:
+            palm_y = self.bound_y
 
         # Interpolates mouse position on screen relative to wrist position on camera feed
         mouse_x = np.interp(palm_x, (self.bound_x, self.cam_width - self.bound_x),

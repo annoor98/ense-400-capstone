@@ -1,103 +1,109 @@
 WindowManager:
     TutorialScreen:
-    CalendarScreen:
+    TutorialScreen2:
     MainScreen:
-    LightsScreen:
     MenuScreen:
+    IotScreen:
     AlarmsScreen:
+    EventsScreen:
+    WeatherScreen:
+    BlackScreen:
+    SettingsScreen:
+
 
 <TutorialScreen>:
     name: "tutorial"
+    FloatLayout:
+        Label:
+            size_hint: None, None
+            pos: 175, 650
+            text: "Welcome!\nTo navigate this mirror, you need to use \neither hand gestures or voice commands.\nTry selecting continue or say\n'Next' to move on."
+            font_size: 20
+    GridLayout:
+        size_hint_y:.75
+        cols:2
+        RoundedButton:
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+            background_color: 0,0,0,0
+            Label:
+                text: '\n        Go Left'
+                font_size: 22
+                pos: self.parent.pos
+            Image:
+                source: "images/tutorial/left.png"
+                center_x: self.parent.center_x
+                center_y: self.parent.center_y
+
+        RoundedButton:
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+            background_color: 0,0,0,0
+            Label:
+                text: '\n        Go Right'
+                font_size: 22
+                pos: self.parent.pos
+            Image:
+                source: "images/tutorial/right.png"
+                center_x: self.parent.center_x
+                center_y: self.parent.center_y
+        RoundedButton:
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+            background_color: 0,0,0,0
+            Label:
+                text: '\n          Go Home'
+                font_size: 22
+                pos: self.parent.pos
+            Image:
+                source: "images/tutorial/peace.png"
+                center_x: self.parent.center_x
+                center_y: self.parent.center_y
+        RoundedButton:
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+            background_color: 0,0,0,0
+            Label:
+                text: '\n\n                Navigate Cursor'
+                font_size: 22
+                pos: self.parent.pos
+            Image:
+                source: "images/tutorial/open.png"
+                center_x: self.parent.center_x
+                center_y: self.parent.center_y
+        RoundedButton:
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+            background_color: 0,0,0,0
+            Label:
+                text: '\n\n                Select Option'
+                font_size: 22
+                pos: self.parent.pos
+            Image:
+                source: "images/tutorial/fist.png"
+                center_x: self.parent.center_x
+                center_y: self.parent.center_y
+        Button:
+            text: "Next"
+            on_press: root.manager.current = 'tutorialVoice'
+
+<TutorialScreen2>:
+    name: "tutorialVoice"
     BoxLayout:
         orientation: "vertical"
         Label:
-            text: "Welcome!\nSelect preferred input method.\nEither use hand to hover.\nOR\nSay 'mirror'\nfollowed by input option."
-            font_size: 24
+            text: "The Mirror can also be controlled using voice commands.\n\nSay 'Mirror', *Pause* and then say the command."
+        Image:
+            source: "images/tutorial/commandList.png"
         Button:
-            id: optionG
-            on_press:
-                root.manager.inputOption(0)
-            text: "Gestures Only"
-            canvas.before:
-                Color:
-                    rgba: 1,1,1,1
-                Line:
-                    width: 3
-                    rectangle: self.x, self.y, self.width, self.height
-            background_color: 0,0,0,0
-        Button:
-            id: optionV
-            on_press:
-                root.manager.inputOption(1)
-            text: "Voice Only"
-            canvas.before:
-                Color:
-                    rgba: 1,1,1,1
-                Line:
-                    width: 3
-                    rectangle: self.x, self.y, self.width, self.height
-            background_color: 0,0,0,0
-        Button:
-            id: optionB
-            on_press:
-                root.manager.inputOption(2)
-            text: "Both"
-            canvas.before:
-                Color:
-                    rgba: 1,1,1,1
-                Line:
-                    width: 3
-                    rectangle: self.x, self.y, self.width, self.height
-            background_color: 0,0,0,0
-
-<CalendarScreen>:
-    name: "events"
-    BoxLayout:
-        orientation: "vertical"
-        Label:
-            text: "Events"
-            font_size: 24
-        RoundedButton:
-            id: event_first
-            text: root.event1
-            canvas.before:
-                Color:
-                    rgba: 1,1,1,1
-                Line:
-                    width: 3
-                    rectangle: self.x, self.y, self.width, self.height
-            background_color: 0,0,0,0
-        RoundedButton:
-            id: event_second
-            text: root.event2
-            canvas.before:
-                Color:
-                    rgba: 1,1,1,1
-                Line:
-                    width: 3
-                    rectangle: self.x, self.y, self.width, self.height
-            background_color: 0,0,0,0
-        Button:
-            id: event_third
-            text: root.event3
-            canvas.before:
-                Color:
-                    rgba: 1,1,1,1
-                Line:
-                    width: 3
-                    rectangle: self.x, self.y, self.width, self.height
-            background_color: 0,0,0,0
-        Button:
-            id: event_fourth
-            text: root.event4
-            canvas.before:
-                Color:
-                    rgba: 1,1,1,1
-                Line:
-                    width: 3
-                    rectangle: self.x, self.y, self.width, self.height
-            background_color: 0,0,0,0
-
+            size_hint: 1, None
+            text: "Next"
+            on_press: root.manager.current = "settings"
 
 <MainScreen>:
     name: "main"
@@ -111,25 +117,22 @@ WindowManager:
             markup: True
             size_hint: None, None
             pos: 300, 675
-        Image:
+        WeatherIcon:
+            id: result
             size_hint_y: None
-            source: "images/weather.jpg"
             width: 100
             pos: -150, 700
     AnchorLayout:
         anchor_x: "center"
-        anchor_y: "center"
-        Label:
-            id: command_label
-            text: "Say 'mirror' followed by a command!"
-            font_size: 24
-            size_hint: None, None
+        anchor_y: "bottom"
+        padding: 0,150
+        CommandLabel:
     AnchorLayout:
         anchor_x: "center"
         anchor_y: "bottom"
         Button:
             id: event_first
-            text: root.firstEventText
+            text: root.first_event_text
             font_size: 24
             canvas.before:
                 Color:
@@ -139,33 +142,6 @@ WindowManager:
                     rectangle: self.x, self.y, self.width, self.height
             background_color: 0,0,0,0
             size_hint: 1, None
-
-
-<LightsScreen>:
-    name: "lights"
-    FloatLayout:
-        md_bg_color: 1/255, 1/255, 1/255, 1
-        ClockLabel:
-            id: clock_label
-            size_hint: 0.75,1
-            font_size: 32
-            color: 'white'
-            markup: True
-            size_hint: None, None
-            pos: 300, 675
-        Image:
-            size_hint_y: None
-            source: "images/weather.jpg"
-            width: 100
-            pos: -150, 700
-        AnchorLayout:
-            Label:
-                text: "Toggle Lights"
-                theme_text_color: "Custom"
-                text_color: 255/255, 255/255, 255/255, 1
-                font_size: 28
-                size_hint: None, None
-
 
 <MenuScreen>
     name: "menu"
@@ -186,69 +162,101 @@ WindowManager:
             cols:2
             padding:[dp(15),dp(15),dp(15),dp(35)]
             spacing:dp(15)
-            Button:
+            RoundedButton:
+                on_press:
+                    root.manager.current = 'weather'
                 Image:
                     source: "images/weather.png"
                     center_x: self.parent.center_x
                     center_y: self.parent.center_y
-                #Label:
-                 #   text: "  Weather"
-                  #  text_color: 255/255, 255/255, 255/255, 1
-            Button:
+            RoundedButton:
                 on_press:
                     root.manager.current = 'events'
                 Image:
                     source: "images/event.png"
                     center_x: self.parent.center_x
                     center_y: self.parent.center_y
-                #Label:
-                 #   text: "  Events"
-                    #theme_text_color: "Custom"
-                  #  text_color: 255/255, 255/255, 255/255, 1
-            Button:
+            RoundedButton:
                 on_press:
-                    root.manager.current = 'lights'
+                    root.manager.current = 'iot'
                 Image:
                     source: "images/lights.jpg"
                     center_x: self.parent.center_x
                     center_y: self.parent.center_y
-                #Label:
-                 #   text: "  Lights"
-                    #theme_text_color: "Custom"
-                  #  text_color: 255/255, 255/255, 255/255, 1
-            Button:
-                Image:
-                    source: "images/thermostat.jpg"
-                    center_x: self.parent.center_x
-                    center_y: self.parent.center_y
-                #Label:
-                 #   text: "  Thermostat"
-                    #theme_text_color: "Custom"
-                  #  text_color: 255/255, 255/255, 255/255, 1
-            Button:
+            RoundedButton:
                 on_press:
                     root.manager.current = 'alarms'
                 Image:
                     source: "images/alarms.png"
                     center_x: self.parent.center_x
                     center_y: self.parent.center_y
-                #Label:
-                 #   text: "Alarms"
-                  #  #theme_text_color: "Custom"
-                   # text_color: 255/255, 255/255, 255/255, 1
-                    #pos: 100, 200
-            Button:
-                on_press:
-                    root.manager.pollAudio(0)
-                #Label:
-                 #   text: "  Lights"
-                    #theme_text_color: "Custom"
-                  #  text_color: 255/255, 255/255, 255/255, 1
+
+<IotScreen>:
+    name: "iot"
+    BoxLayout:
+        orientation: "vertical"
+        AnchorLayout:
+            anchor_x: "center"
+            Label:
+                text: "Devices Page"
+                font_size: 32
+        Label:
+            text: ""
+            font_size: 24
+        FloatLayout:
+            md_bg_color: 1/255, 1/255, 1/255, 1
+            ClockLabel:
+                id: clock_label
+                size_hint: 0.75,1
+                font_size: 32
+                color: 'white'
+                markup: True
+                size_hint: None, None
+                pos: 300, 625
+        Label:
+            text: ""
+            font_size: 24
+        Label:
+            text: ""
+            font_size: 24
+        Label:
+            text: ""
+            font_size: 24
+        AnchorLayout:
+            anchor_x: "center"
+            CommandLabel:
+        RoundedButton:
+            text: "Toggle Lights"
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            on_press: root.manager.toggle_iot_device(0)
+            background_color: 0,0,0,0
+        RoundedButton:
+            text: "Toggle Switch"
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            on_press: root.manager.toggle_iot_device(1)
+            background_color: 0,0,0,0
 
 <AlarmsScreen>
     name: "alarms"
     FloatLayout:
         orientation: 'vertical'
+        AnchorLayout:
+            anchor_x: "center"
+            anchor_y: "top"
+            Label:
+                text: "Alarms Page"
+                font_size: 32
+                size_hint: None, None
         ClockLabel:
             id: clock_label
             size_hint: 0.75,1
@@ -256,42 +264,233 @@ WindowManager:
             color: 'white'
             markup: True
             size_hint: None, None
-            pos: 300, 675
+            pos: 300, 625
     BoxLayout:
         md_bg_color: 1/255, 1/255, 1/255, 1
         GridLayout:
-            size_hint_y:.75
+            size_hint_y:.25
             cols:1
             padding:[dp(15),dp(15),dp(15),dp(35)]
             spacing:dp(15)
+            AnchorLayout:
+                anchor_x: "center"
+                CommandLabel:
             RoundedButton:
-                id: wake_up
-                text: "  Wake Up!! - 11:55"
+                id: "alarm_text"
+                text: root.alarm_time
                 text_color: 255/255, 255/255, 255/255, 1
-            RoundedButton:
-                id: test
-                text: "02:25:00"
-                text_color: 255/255, 255/255, 255/255, 1
-            RoundedButton:
-                text: "  Class - 6:30"
-                text_color: 255/255, 255/255, 255/255, 1
+
+<EventsScreen>:
+    name: "events"
+    BoxLayout:
+        orientation: "vertical"
+        AnchorLayout:
+            anchor_x: "center"
+            Label:
+                text: "Events Page"
+                font_size: 32
+        RoundedButton:
+            id: event_first
+            text: root.event1
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+        RoundedButton:
+            id: event_second
+            text: root.event2
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+        Label:
+            text: ""
+            font_size: 24
+        Label:
+            text: ""
+            font_size: 24
+        Label:
+            text: ""
+            font_size: 24
+        Label:
+            text: ""
+            font_size: 24
+        Label:
+            text: ""
+            font_size: 24
+        AnchorLayout:
+            anchor_x: "center"
+            CommandLabel:
+        RoundedButton:
+            id: event_third
+            text: root.event3
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+        RoundedButton:
+            id: event_fourth
+            text: root.event4
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+
+<WeatherScreen>:
+    name: "weather"
+    orientation: 'vertical'
+    WeatherIcon:
+        id: result
+        size_hint_y: None
+        width: 100
+        pos: 150, 675
+    WeatherLabel:
+        id: result
+        size_hint: 0.75,1
+        font_size: 32
+        color: 'white'
+        markup: True
+        size_hint: None, None
+        pos: 50, 675
+    AnchorLayout:
+        anchor_x: "center"
+        CommandLabel:
+    TempLabel:
+        id: result
+        size_hint: 0.75,1
+        font_size: 24
+        color: 'white'
+        markup: True
+        size_hint: 1, None
+        pos: 0, 125
+    FeelsLabel:
+        id: result
+        size_hint: 0.75,1
+        font_size: 24
+        color: 'white'
+        markup: True
+        size_hint: 1, None
+        pos: 0, 75
+    ForecastLabel:
+        id: result
+        size_hint: 0.75,1
+        font_size: 24
+        color: 'white'
+        markup: True
+        size_hint: 1, None
+        pos: 0, 25
+
+<BlackScreen>:
+    name: "blackscreen"
+
+<SettingsScreen>:
+    name: "settings"
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            text: "Select preferred input method.\nEither use hand to hover.\nOR Say 'mirror'\nfollowed by input option."
+            font_size: 24
+        Button:
+            id: optionG
+            on_press:
+                root.manager.input_option(0)
+            text: "Gestures Only"
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+        Button:
+            id: optionV
+            on_press:
+                root.manager.input_option(1)
+            text: "Voice Only"
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+        Button:
+            id: optionB
+            on_press:
+                root.manager.input_option(2)
+            text: "Both"
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
+        BoxLayout:
+            orientation: "horizontal"
+            Button:
+                on_press:
+                    root.manager.change_alarm_sound(1)
+                text: "Alarm Sound On"
+                canvas.before:
+                    Color:
+                        rgba: 1,1,1,1
+                    Line:
+                        width: 3
+                        rectangle: self.x, self.y, self.width, self.height
+                background_color: 0,0,0,0
+            Button:
+                on_press:
+                    root.manager.change_alarm_sound(0)
+                text: "Alarm Sound Off"
+                canvas.before:
+                    Color:
+                        rgba: 1,1,1,1
+                    Line:
+                        width: 3
+                        rectangle: self.x, self.y, self.width, self.height
+                background_color: 0,0,0,0
+        Button:
+            on_press:
+                root.manager.current = 'blackscreen'
+            text: "Screen Off"
+            canvas.before:
+                Color:
+                    rgba: 1,1,1,1
+                Line:
+                    width: 3
+                    rectangle: self.x, self.y, self.width, self.height
+            background_color: 0,0,0,0
 
 <RoundedButton>:
     background_normal: ""
     background_color: 0, 0, 0, 0
     back_color:1,1,1,1
     border_radius: 10
-    color: self.back_color
     bold: True
-    on_press: self.change_color()
     canvas.before:
         Color:
             rgba: self.back_color
         Line:
             rounded_rectangle: self.x, self.y, self.width, self.height, self.border_radius
 
-
-
+<CommandLabel>:
+    id: command_label
+    text: "Say 'mirror' followed by a command!"
+    font_size: 24
+    size_hint: None, None
 
 
 

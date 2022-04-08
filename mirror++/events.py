@@ -38,8 +38,10 @@ def get_events():
 
     events = []
     for i in result['items']:
-        events.append("Event:" + i['summary'] + "\nStart: "
-                      + i["start"]["date"] + "\nEnd: " + i["end"]["date"])
+        events.append("Event: " + i['summary'] + "\nStart: "
+                      + i["start"]["dateTime"][0:10] + " " + i["start"]["dateTime"][11:19]
+                      + "\nEnd: " + i["end"]["dateTime"][0:10] + " "
+                      + i["end"]["dateTime"][11:19])
     return events
 
 

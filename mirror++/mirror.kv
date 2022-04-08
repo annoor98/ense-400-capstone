@@ -233,7 +233,7 @@ WindowManager:
                 Line:
                     width: 3
                     rectangle: self.x, self.y, self.width, self.height
-            on_press: root.manager.toggleIoT(0)
+            on_press: root.manager.toggle_iot_device(0)
             background_color: 0,0,0,0
         RoundedButton:
             text: "Toggle Switch"
@@ -243,7 +243,7 @@ WindowManager:
                 Line:
                     width: 3
                     rectangle: self.x, self.y, self.width, self.height
-            on_press: root.manager.toggleIoT(1)
+            on_press: root.manager.toggle_iot_device(1)
             background_color: 0,0,0,0
 
 <AlarmsScreen>

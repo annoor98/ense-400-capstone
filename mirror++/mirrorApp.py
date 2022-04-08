@@ -22,7 +22,7 @@ WINDOWX = 456
 WINDOWY = 810
 
 Window.size = (WINDOWX, WINDOWY)
-# Window.fullscreen = True
+Window.fullscreen = True
 
 # Sets microphone
 recognizer = sr.Recognizer()
@@ -60,8 +60,8 @@ class WindowManager(ScreenManager):
             print("Listening...")
             print("Obtained audio...")
 
-        # Listens for sound in the background in blocks of 1 second
-        stopListen = recognizer.listen_in_background(mic, self.detect_voice_command, 1)
+        # Listens for sound in the background in blocks of 2 second
+        stopListen = recognizer.listen_in_background(mic, self.detect_voice_command, 2)
 
     def input_option(self, i):
         """Changes navigation type"""
@@ -218,6 +218,11 @@ class WindowManager(ScreenManager):
             self.transition.direction = 'up'
             self.current = 'alarm'
 
+        if mirrorApp.cam.get_hold_time() > 10:
+            Window.set_system_cursor("crosshair")
+        else:
+            Window.set_system_cursor("hand")
+
     # Changes screen depending on hand gesture
     def detect_screen_change(self):
         """Function for changing screens depending on gesture"""
@@ -272,13 +277,13 @@ class MainScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1 / 30)
-        # self.events = events_screen.get_events()
+        self.events = events_screen.get_events()
         self.first_event_text = "No Upcoming Event"
 
-        # if self.events:
-        #   self.first_event_text = self.events[0]
-        # else:
-        #   self.first_event_text = "No upcoming events"
+        if self.events:
+            self.first_event_text = self.events[0]
+        else:
+            self.first_event_text = "No upcoming events"
 
     def update(self, screen):
         """Update function for Kivy classes"""
@@ -344,14 +349,16 @@ class EventsScreen(Screen):
         self.event3 = "No upcoming events"
         self.event4 = "No upcoming events"
 
-        # self.event = events_screen.get_events()
-        # if self.event:
-        #   if self.event[0]:
-        #      self.event1 = self.event[0]
-        # if self.event[1]:
-        #    self.event2 = self.event[1]
-        # if self.event[2]:
-        #   self.event3 = self.event[2]
+        self.event = events_screen.get_events()
+        if self.event:
+            if self.event[0]:
+                self.event1 = self.event[0]
+            if self.event[1]:
+                self.event2 = self.event[1]
+            if self.event[2]:
+                self.event3 = self.event[2]
+            if self.event[3]:
+                self.event4 = self.event[3]
 
     def update(self, screen):
         """Update function for Kivy classes"""

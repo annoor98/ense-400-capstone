@@ -6,8 +6,8 @@ from tracker import Tracker
 
 CAMWIDTH = 640
 CAMHEIGHT = 480
-MONITORW = 2560
-MONITORH = 1080
+MONITORW = 456
+MONITORH = 810
 
 
 class Camera:
@@ -168,3 +168,7 @@ class Camera:
     def get_gesture(self):
         """Returns which gesture is currently on camera feed"""
         return self.gesture
+
+    def get_hold_time(self):
+        """Returns how long a gesture has been held for"""
+        return self.hold_timer

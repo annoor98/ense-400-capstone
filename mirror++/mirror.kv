@@ -397,7 +397,7 @@ WindowManager:
     BoxLayout:
         orientation: "vertical"
         Label:
-            text: "Select preferred input method.\nEither use hand to hover.\nOR\nSay 'mirror'\nfollowed by input option."
+            text: "Select preferred input method.\nEither use hand to hover.\nOR Say 'mirror'\nfollowed by input option."
             font_size: 24
         Button:
             id: optionG
@@ -435,6 +435,30 @@ WindowManager:
                     width: 3
                     rectangle: self.x, self.y, self.width, self.height
             background_color: 0,0,0,0
+        BoxLayout:
+            orientation: "horizontal"
+            Button:
+                on_press:
+                    root.manager.change_alarm_sound(1)
+                text: "Alarm Sound On"
+                canvas.before:
+                    Color:
+                        rgba: 1,1,1,1
+                    Line:
+                        width: 3
+                        rectangle: self.x, self.y, self.width, self.height
+                background_color: 0,0,0,0
+            Button:
+                on_press:
+                    root.manager.change_alarm_sound(0)
+                text: "Alarm Sound Off"
+                canvas.before:
+                    Color:
+                        rgba: 1,1,1,1
+                    Line:
+                        width: 3
+                        rectangle: self.x, self.y, self.width, self.height
+                background_color: 0,0,0,0
         Button:
             on_press:
                 root.manager.current = 'blackscreen'

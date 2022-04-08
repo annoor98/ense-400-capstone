@@ -33,10 +33,11 @@ gestures = True
 voice = True
 alarm = True
 alarm_run = False
+alarm_sound = True
 screen_off = False
 command = "Say 'mirror' followed by a command!"
 
-CAMERA_VAL = 1
+CAMERA_VAL = 0
 
 with open('devices.json', 'r') as file:
     devices = json.load(file)
@@ -79,6 +80,14 @@ class WindowManager(ScreenManager):
 
         self.transition.direction = 'up'
         self.current = 'main'
+
+    def change_alarm_sound(self, i):
+        """Toggles Alarm Sound"""
+        global alarm_sound
+        if i == 0:
+            alarm_sound = False
+        else:
+            alarm_sound = True
 
     def toggle_iot_device(self, i):
         """Toggles IoT devices"""
@@ -193,6 +202,7 @@ class WindowManager(ScreenManager):
                 self.transition.direction = 'up'
                 requests.get(devices['lightsAlarmOff'])
                 self.current = 'main'
+                alarm_run = False
             print(word)
         except sr.UnknownValueError:
             print("Could not understand audio")
@@ -216,7 +226,7 @@ class WindowManager(ScreenManager):
 
         if alarm_run:
             self.transition.direction = 'up'
-            self.current = 'alarm'
+            self.current = 'alarms'
 
         if mirrorApp.cam.get_hold_time() > 10:
             Window.set_system_cursor("crosshair")
@@ -317,10 +327,13 @@ class AlarmsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update, 1)
-        # if events_screen.get_alarm_event():
-        #   self.alarm_time = events_screen.get_alarm_event()[0]
-        # else:
-        self.alarm_time = "No Alarms Present"
+        self.sound = SoundLoader.load('alarm/alarm_noise.wav')
+        self.sound.loop = True
+        self.is_alarm_running = False
+        if events_screen.get_alarm_event():
+            self.alarm_time = events_screen.get_alarm_event()[0]
+        else:
+            self.alarm_time = "No Alarms Present"
 
     def update(self, delta):
         """Update function for Kivy classes"""
@@ -328,14 +341,20 @@ class AlarmsScreen(Screen):
 
     def check_alarm(self):
         """Function that checks if alarm should run"""
-        global alarm, alarm_run
+        global alarm, alarm_run, alarm_sound
         currentTime = datetime.datetime.now().strftime("%H:%M")
         if currentTime == self.alarm_time and alarm is True:
             requests.get(devices['lightsAlarm'])
             alarm_run = True
             alarm = False
-        if alarm_run is True:
+        if alarm_run is True and self.is_alarm_running is False:
+            self.is_alarm_running = True
             self.alarm_time = "ALARM RUNNING! SAY 'STOP' OR MAKE Home Gesture!"
+            if alarm_sound:
+                self.sound.play()
+        if alarm_run is False:
+            self.is_alarm_running = False
+            self.sound.stop()
 
 
 class EventsScreen(Screen):
@@ -399,12 +418,12 @@ class SettingsScreen(Screen):
 
 class RoundedButton(Button):
     """Rounded Button Kivy Component"""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1 / 30)
 
-    def load_alarms(self):
-        """Function to load alarm sound"""
-        sound = SoundLoader.load('alarms/alarm_noise.wav')
-        if ClockLabel.text == self.ids.test.text:
-            sound.play()
+    def update(self, delta):
+        """Update function for Kivy classes"""
 
 
 class CommandLabel(Label):

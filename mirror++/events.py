@@ -48,7 +48,7 @@ def get_events():
 def get_alarm_event():
     """Gets alarm events within the day"""
     local_time = datetime.now(timezone.utc).astimezone()
-    local_end = local_time + timedelta(days=1)
+    local_end = local_time + timedelta(days=3)
 
     start_time = local_time.strftime("%Y-%m-%dT%H:%M:%S") + "+00:00"
     end_time = local_end.strftime("%Y-%m-%dT%H:%M:%S") + "+00:00"

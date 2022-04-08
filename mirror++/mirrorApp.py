@@ -145,7 +145,11 @@ class WindowManager(ScreenManager):
             if word == "mirror" and command_mode is False and alarm_run is False:
                 command_mode = True
                 command = "listening..."
-
+            elif word == "stop" and alarm_run is True:
+                self.transition.direction = 'up'
+                requests.get(devices['lightsAlarmOff'])
+                self.current = 'main'
+                alarm_run = False
             elif command_mode is True and alarm_run is False:
                 if word == "alarm" or word == 'alarms' and screen_off is False:
                     self.transition.direction = 'up'
@@ -204,14 +208,12 @@ class WindowManager(ScreenManager):
                 else:
                     command_mode = False
                     command = "Say 'mirror' followed by a command!"
-            elif word == "stop" and alarm_run is True:
-                self.transition.direction = 'up'
-                requests.get(devices['lightsAlarmOff'])
-                self.current = 'main'
-                alarm_run = False
+            else:
+                command = word
             print(word)
         except sr.UnknownValueError:
             print("Could not understand audio")
+            command = "Say 'mirror' followed by a command!"
             command_mode = False
         except sr.RequestError as err:
             print("Sphinx error; {0}".format(err))

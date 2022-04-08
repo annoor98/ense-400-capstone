@@ -89,6 +89,10 @@ class WindowManager(ScreenManager):
         else:
             alarm_sound = True
 
+        self.transition.direction = 'up'
+        self.current = 'main'
+
+
     def toggle_iot_device(self, i):
         """Toggles IoT devices"""
         if i == 0:

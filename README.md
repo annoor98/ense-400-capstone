@@ -37,3 +37,6 @@ A smart mirror that functions using gestures to navigate its user interface. It 
 * Customer Help / User Training / Knowledgebase: Project Deliverables / Customer Help - User Training Guide
 * Final Presentation: Project Deliverables / Project Day Presenation
 * Project Experience Report: Project Deliverables / Project Experience Report
+
+## Notes
+The folders "Documentation" and "Gesture Tracking Tests" contain documents and tests that are no longer applicable to the project but reflect the overall process of the final project.

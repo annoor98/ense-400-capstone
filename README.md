@@ -1,6 +1,6 @@
 # Mirror++
 
-A smart mirror that functions using gestures to navigate its user interface. It will extend the functions of smart devices that currently exist and use gestures to manipulate commands and perform tasks.
+A smart mirror aimed toward people with different forms and levels of disabilities. It performs operations based on gestures and voice control, depending on user preference. It also extends functions already available on smart devices and makes them more accessible. Mirror++ is also able to automate existing IoT devices like lights and outlets.
 
 #### Maintained by Qurrat and Annoor
 
